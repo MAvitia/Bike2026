@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0b6e4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Bike Trip 2026 — Pittsburgh to DC</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🚲 Bike Trip 2026<small>Pittsburgh → Washington, DC</small></h1>
+    <div id="statusPill">…</div>
+  </header>
+
+  <!-- ROUTE / TRACKER VIEW -->
+  <main id="view-route">
+    <div id="map"></div>
+    <div id="mapOverlay">
+      <div class="chip" id="chipSpeed">
+        <div class="label">Speed</div>
+        <div class="value"><span id="ovSpeed">--</span> <small>mph</small></div>
+      </div>
+      <div class="chip" id="chipNext">
+        <div class="label">Next stop · <span id="ovNextDist">--</span></div>
+        <div class="value" id="ovNextName">Start GPS to track</div>
+      </div>
+    </div>
+    <div id="mapButtons">
+      <button class="fab" id="btnFit" title="Fit route">🧭</button>
+      <button class="fab" id="btnMark" title="Mark this spot">📍</button>
+      <button class="fab primary" id="btnGps" title="Start / stop GPS">▶</button>
+    </div>
+  </main>
+
+  <!-- SPEED TRAINER VIEW -->
+  <main id="view-speed" hidden>
+    <div class="scroll">
+      <div class="banner" id="speedBanner">Tap <b>Start GPS</b> below to check your pace. Goal: hold <b>10 mph</b>.</div>
+      <div class="card" id="gaugeWrap">
+        <h2>Speed Check</h2>
+        <svg id="gauge" viewBox="0 0 300 188" aria-label="speed gauge"></svg>
+        <div id="speedReadout">--<small>mph</small></div>
+        <div id="zoneLabel">—</div>
+        <div class="stat-grid">
+          <div class="stat"><div class="n" id="stAvg">--</div><div class="l">Avg (30s)</div></div>
+          <div class="stat"><div class="n" id="stSession">--</div><div class="l">Trip Avg</div></div>
+          <div class="stat"><div class="n" id="stMax">--</div><div class="l">Max</div></div>
+        </div>
+        <div id="paceVerdict" class="muted">Start GPS and ride to check your pace.</div>
+        <div style="margin-top:14px" class="row">
+          <button class="btn" id="btnGps2">Start GPS</button>
+          <button class="btn secondary" id="btnResetStats">Reset</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Zone guide</h3>
+        <div class="legend-row"><span class="sw" style="background:var(--blue)"></span> Stopped</div>
+        <div class="legend-row"><span class="sw" style="background:var(--red)"></span> Under 8 mph — too slow</div>
+        <div class="legend-row"><span class="sw" style="background:var(--yellow)"></span> 8–10 mph — almost there</div>
+        <div class="legend-row"><span class="sw" style="background:var(--zgreen)"></span> 10–12 mph — on target ✅</div>
+        <div class="legend-row"><span class="sw" style="background:var(--zgreen2)"></span> 12+ mph — flying! ✅✅</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- PLAN / DAYS / POIs VIEW -->
+  <main id="view-plan" hidden>
+    <div class="scroll">
+      <div class="banner" id="planBanner"></div>
+
+      <div class="card">
+        <h2>The Route</h2>
+        <p class="muted">Tap a day to zoom the map to it. ~320 miles over 5 riding days, then the train home.</p>
+        <div class="day-pills" id="dayPills"></div>
+      </div>
+
+      <div class="card">
+        <h2>Your Pins</h2>
+        <p class="muted" id="poiHelp">Tap anywhere on the map to drop an interest point, or use 📍 to mark your GPS spot. Saved on this device.</p>
+        <div id="poiList"></div>
+        <button class="btn danger" id="btnClearPois" style="margin-top:10px" hidden>Clear all my pins</button>
+      </div>
+
+      <div id="dayCards"></div>
+
+      <div class="card">
+        <h3>About this app</h3>
+        <p class="muted">Live position, speed, and distances come from your phone's GPS — keep the screen on while riding. The drawn route is approximate (town-to-town), so trail mileage will differ a little. Map tiles need a data connection.</p>
+      </div>
+    </div>
+  </main>
+
+  <nav id="tabs">
+    <button data-view="route" class="active"><span class="ic">🗺️</span>Route</button>
+    <button data-view="speed"><span class="ic">⚡</span>Speed</button>
+    <button data-view="plan"><span class="ic">📋</span>Plan</button>
+  </nav>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
