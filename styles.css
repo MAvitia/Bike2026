@@ -213,6 +213,20 @@ select, input[type=text] {
   width: 18px; height: 18px; background: #2b82d4; border: 3px solid #fff; border-radius: 50%;
   box-shadow: 0 0 0 2px rgba(43,130,212,.5), 0 0 14px rgba(43,130,212,.9);
 }
+/* Sights (star pins) */
+.sight-pin {
+  display: inline-block; white-space: nowrap; text-align: center;
+  color: #ffb300; font-weight: 800; letter-spacing: -1px;
+  background: rgba(15,23,32,.85); border: 1px solid rgba(255,179,0,.55);
+  border-radius: 999px; padding: 1px 7px 2px;
+  text-shadow: 0 1px 2px #000; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.sight-pin.s1 { font-size: 10px; opacity: .82; }
+.sight-pin.s2 { font-size: 12px; }
+.sight-pin.s3 { font-size: 14px; border-color: #ffb300; }
+.stars { color: #ffb300; font-weight: 700; letter-spacing: -1px; }
+.stars.s1 { opacity: .75; }
+
 /* Support vehicle stops */
 .veh-stop { position: relative; font-size: 20px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
 .veh-stop span {

@@ -24,6 +24,14 @@ with sync_playwright() as p:
         for f in ("lunch", "poi", "town"):
             page.click(f"#mapFilter button[data-f={f}]")
         page.wait_for_timeout(400)
+    if mode == "sights":
+        page.evaluate("() => BikeApp.map.setView([39.868, -79.49], 13)")
+        page.wait_for_timeout(1200)
+    if mode == "plan":
+        page.evaluate("() => window.__setView('plan')")
+        page.wait_for_timeout(400)
+        page.evaluate("() => document.querySelector('#view-plan .scroll').scrollTo(0, 700)")
+        page.wait_for_timeout(200)
     if mode == "speed":
         # simulate the GPS-on state to show the bottom speed overlay
         page.evaluate("""() => {

@@ -53,4 +53,6 @@ python tools/build_route.py
 
 The script snaps every waypoint onto the trail and routes between them along the trail itself (never roads), so the line always stays on the GAP/C&O. `tools/plot_route.py` renders a quick PNG to eyeball the result.
 
+**`sights-data.js`** is the hand-curated list of sights / photo stops with 1-3 star ratings (3 = don't miss). Edit it freely; for trailside entries set `"snap": true` and run `python tools/snap_sights.py` to pin them exactly onto the route line. They render as gold star pins in the ⭐ Sights layer and as a day-by-day list on the Plan tab.
+
 **`stops-data.js`** holds the support-vehicle meet points (~every 10 mi, each where a public road or parking lot touches the trail, found via OpenStreetMap). Regenerate with `python tools/build_stops.py` — it also re-snaps all `data.js` waypoint coordinates onto the trail line. On the Route tab, a filter bar toggles marker categories (Vehicle / Food / Hotels / Sights / Towns); leaving only **🚗 Vehicle** (+ Hotels) on activates driver mode, which highlights the next meet point ahead of the riders. Every marker popup includes Google Maps / Navigate links.

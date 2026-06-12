@@ -131,6 +131,12 @@
   }
   var vehicleLayer = typeLayers.vehicle; // support vehicle stops
 
+  // star-rating helpers (sights: 3 = don't miss, 2 = worth it, 1 = if fresh)
+  function starsTxt(n) { return "★★★".slice(0, n); }
+  function starsLabel(n) {
+    return n === 3 ? "don't miss" : (n === 2 ? "worth the stop" : "only if you're fresh");
+  }
+
   // waypoint markers (coordinates are snapped onto the trail line)
   W.forEach(function (w, i) {
     allLatLngs.push([w.lat, w.lng]);
@@ -139,11 +145,34 @@
     var m = L.circleMarker([w.lat, w.lng], {
       radius: r, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1
     }).addTo(typeLayers[filterGroupFor(w.type)]);
+    var starLine = w.stars ? "<span style='color:#c79200'>" + starsTxt(w.stars) + "</span> " +
+      "<span style='color:#555'>(" + starsLabel(w.stars) + ")</span><br>" : "";
     var html = "<b>" + (TYPE_ICON[w.type] || "") + " " + w.name + "</b><br>" +
-      "<span style='color:#555'>Day " + w.day + "</span><br>" + w.desc +
+      "<span style='color:#555'>Day " + w.day + "</span><br>" + starLine + w.desc +
       "<br>" + gmapsLinks(w.lat, w.lng) +
       "<br><span class='popup-btn' data-target='" + i + "'>Set as next stop →</span>";
     m.bindPopup(html);
+  });
+
+  // curated sights & photo stops (sights-data.js) — live in the ⭐ Sights layer
+  var SIGHT_LIST = (typeof SIGHTS !== "undefined") ? SIGHTS : [];
+  var sightMarkers = [];
+  function sightIcon(stars) {
+    return L.divIcon({
+      className: "",
+      html: "<div class='sight-pin s" + stars + "'>" + starsTxt(stars) + "</div>",
+      iconSize: [54, 20], iconAnchor: [27, 10]
+    });
+  }
+  SIGHT_LIST.forEach(function (s) {
+    var m = L.marker([s.lat, s.lng], { icon: sightIcon(s.stars), zIndexOffset: 300 + s.stars * 10 })
+      .addTo(typeLayers.poi);
+    m.bindPopup(
+      "<b><span style='color:#c79200'>" + starsTxt(s.stars) + "</span> " + s.name + "</b><br>" +
+      "<span style='color:#555'>Day " + s.day + " · " + starsLabel(s.stars) +
+      (s.snap ? "" : " · short detour off trail") + "</span><br>" +
+      s.desc + "<br>" + gmapsLinks(s.lat, s.lng));
+    sightMarkers.push(m);
   });
 
   // support vehicle stops (stops-data.js)
@@ -638,6 +667,43 @@
     });
   }
 
+  // ---------- sights list (Plan tab) ----------
+  function buildSightsList() {
+    var box = $("sightsList");
+    if (!box || !SIGHT_LIST.length) return;
+    box.innerHTML = "";
+    var curDay = 0;
+    SIGHT_LIST.forEach(function (s, i) {
+      if (s.day !== curDay) {
+        curDay = s.day;
+        var dInfo = TRIP.days[curDay - 1];
+        var h = document.createElement("div");
+        h.className = "veh-day";
+        h.innerHTML = "<span class='dot' style='background:" + dInfo.color + "'></span>Day " +
+          curDay + " — " + dInfo.from + " → " + dInfo.to;
+        box.appendChild(h);
+      }
+      var row = document.createElement("div");
+      row.className = "veh-row";
+      row.innerHTML =
+        "<span class='veh-name'><span class='stars s" + s.stars + "'>" + starsTxt(s.stars) + "</span> " +
+        s.name + (s.snap ? "" : " <small class='muted'>(off trail)</small>") + "</span>" +
+        "<span class='veh-links'>" +
+        "<a target='_blank' rel='noopener' href='" + gmapsUrl(s.lat, s.lng) + "'>Map</a>" +
+        "</span>";
+      row.querySelector(".veh-name").addEventListener("click", function () {
+        setView("route");
+        state.follow = false;
+        setTimeout(function () {
+          map.invalidateSize();
+          map.setView([s.lat, s.lng], 14);
+          sightMarkers[i].openPopup();
+        }, 60);
+      });
+      box.appendChild(row);
+    });
+  }
+
   // ---------- support vehicle list (Plan tab) ----------
   function buildVehicleList() {
     var box = $("vehicleList");
@@ -714,6 +780,7 @@
   renderPois();
   buildPlan();
   buildVehicleList();
+  buildSightsList();
   setGpsButtons();
   setupDateState();
 
