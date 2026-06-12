@@ -21,3 +21,7 @@ window.FIREBASE_CONFIG = {
   appId: "1:269301290576:web:f750a30846b52c365a6355",
   measurementId: "G-QH0H55XTKK"
 };
+
+// OwnTracks background relay (Cloudflare Worker). Pre-fills the Live tab's
+// OwnTracks setup so riders don't have to paste it. Not a secret.
+window.OT_RELAY_URL = "https://biketrip-owntracks-relay.manuel-avitia-v.workers.dev";

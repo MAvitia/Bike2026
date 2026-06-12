@@ -254,7 +254,7 @@
     return (state.name || (el && el.value) || localStorage.getItem("biketrip_name") || "").trim();
   }
   function buildOtUrl() {
-    var relay = (localStorage.getItem("biketrip_otrelay") || "").trim();
+    var relay = (localStorage.getItem("biketrip_otrelay") || window.OT_RELAY_URL || "").trim();
     var name = currentName();
     if (!relay || !name) return null;
     var base;
@@ -270,7 +270,7 @@
       ready.hidden = true;
       if (hint) {
         hint.hidden = false;
-        var needName = !currentName(), needRelay = !(localStorage.getItem("biketrip_otrelay") || "").trim();
+        var needName = !currentName(), needRelay = !(localStorage.getItem("biketrip_otrelay") || window.OT_RELAY_URL || "").trim();
         hint.textContent = needName && needRelay ? "Enter your name (above) and your relay URL to generate your OwnTracks setup."
           : needName ? "Enter your name above to generate your OwnTracks setup."
           : "Paste your relay Worker URL above to generate your OwnTracks setup.";
@@ -320,7 +320,7 @@
 
     // OwnTracks background setup (works independently of Firebase config)
     if ($("otRelay")) {
-      $("otRelay").value = localStorage.getItem("biketrip_otrelay") || "";
+      $("otRelay").value = localStorage.getItem("biketrip_otrelay") || window.OT_RELAY_URL || "";
       $("otRelay").addEventListener("input", function () {
         localStorage.setItem("biketrip_otrelay", $("otRelay").value.trim());
         renderOt();
