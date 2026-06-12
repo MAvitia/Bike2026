@@ -12,9 +12,12 @@
  * (b) the database security rules in database.rules.json.
  */
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE_PROJECT.firebaseapp.com",
-  databaseURL: "https://PASTE_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "PASTE_PROJECT",
-  appId: "PASTE_APP_ID"
+  apiKey: "AIzaSyCX0ZMq_BrNvzCCnwyQFYDQSj6GcadY-5g",
+  authDomain: "gap-cno-2026.firebaseapp.com",
+  databaseURL: "https://gap-cno-2026-default-rtdb.firebaseio.com",
+  projectId: "gap-cno-2026",
+  storageBucket: "gap-cno-2026.firebasestorage.app",
+  messagingSenderId: "269301290576",
+  appId: "1:269301290576:web:f750a30846b52c365a6355",
+  measurementId: "G-QH0H55XTKK"
 };
