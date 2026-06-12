@@ -1,0 +1,7 @@
+name = "biketrip-owntracks-relay"
+main = "worker.js"
+compatibility_date = "2024-06-01"
+
+# Your Firebase Realtime Database URL (same as databaseURL in firebase-config.js)
+[vars]
+RTDB_URL = "https://PASTE_PROJECT-default-rtdb.firebaseio.com"

@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": "$room.length >= 12",
+        ".write": "$room.length >= 12",
+        "riders": {
+          "$rider": {
+            ".validate": "newData.hasChildren(['name','lat','lng','ts'])",
+            "lat": { ".validate": "newData.isNumber()" },
+            "lng": { ".validate": "newData.isNumber()" },
+            "ts":  { ".validate": "newData.isNumber()" }
+          }
+        }
+      }
+    }
+  }
+}

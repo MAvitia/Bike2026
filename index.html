@@ -96,16 +96,60 @@
     </div>
   </main>
 
+  <!-- LIVE GROUP TRACKING VIEW -->
+  <main id="view-live" hidden>
+    <div class="scroll">
+      <div class="banner" id="liveStatus" style="display:none"></div>
+
+      <div class="card">
+        <h2>👥 Live Group Map</h2>
+        <p class="muted">Everyone who opens this link and enters a name shows up live on the map. Your phone shares its location while this page is open.</p>
+
+        <div id="liveJoinBox">
+          <input type="text" id="liveName" maxlength="24" placeholder="Your name (e.g. Manuel)" autocomplete="name">
+          <button class="btn" id="btnLiveJoin">Share my live location</button>
+        </div>
+
+        <div id="liveJoinedBox" hidden>
+          <p>✅ Sharing live as <b id="liveWho"></b>. Keep this page open while riding.</p>
+          <button class="btn secondary" id="btnLiveLeave">Stop sharing</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Who's on the map</h3>
+        <div id="liveRoster"></div>
+      </div>
+
+      <div class="card">
+        <h3>Invite your group</h3>
+        <p class="muted">Share this link — it contains your private trip code. Treat it like a passcode; only people with the link can see locations.</p>
+        <p class="muted">Trip code: <code id="liveRoomCode">—</code></p>
+        <button class="btn" id="btnLiveShare">Copy share link</button>
+      </div>
+
+      <div class="card">
+        <h3>Track in the background (optional)</h3>
+        <p class="muted">A web page only shares location while it's open. To keep transmitting with the screen off, install the free <b>OwnTracks</b> app and point it at your relay — or use a 4G GPS tracker. See <b>SETUP.md</b> for steps and device picks.</p>
+      </div>
+    </div>
+  </main>
+
   <nav id="tabs">
     <button data-view="route" class="active"><span class="ic">🗺️</span>Route</button>
     <button data-view="speed"><span class="ic">⚡</span>Speed</button>
+    <button data-view="live"><span class="ic">👥<span id="liveTabBadge" class="tab-badge" style="display:none"></span></span>Live</button>
     <button data-view="plan"><span class="ic">📋</span>Plan</button>
   </nav>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="firebase-config.js"></script>
+<script src="live.js"></script>
 </body>
 </html>

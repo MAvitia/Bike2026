@@ -187,6 +187,26 @@ select, input[type=text] {
 .leaflet-popup-content b { color: #0b6e4f; }
 .popup-btn { margin-top: 6px; display: inline-block; background: #0b6e4f; color:#fff; padding: 6px 9px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
+/* ---------- Live tracking ---------- */
+.live-pin {
+  width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 0 10px rgba(0,0,0,.4); position: relative;
+}
+.live-pin-label {
+  position: absolute; left: 50%; transform: translateX(-50%); top: 18px;
+  font-size: 10px; font-weight: 700; color: #fff; white-space: nowrap;
+  background: rgba(15,23,32,.82); padding: 1px 5px; border-radius: 6px;
+  text-shadow: 0 1px 2px #000;
+}
+.live-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.tab-badge {
+  position: absolute; transform: translate(8px, -8px); background: var(--red); color: #fff;
+  font-size: 9px; font-weight: 700; min-width: 14px; height: 14px; line-height: 14px;
+  border-radius: 999px; padding: 0 3px; text-align: center;
+}
+nav#tabs button .ic { position: relative; }
+code { background: var(--panel-2); color: #cfe; padding: 2px 6px; border-radius: 6px; font-size: 12px; word-break: break-all; }
+
 @media (min-width: 720px) {
   header h1 { font-size: 18px; }
   .scroll { max-width: 720px; margin: 0 auto; }

@@ -195,6 +195,8 @@
     updateNext();
 
     if (state.follow) map.setView([lat, lng], Math.max(map.getZoom(), 14), { animate: true });
+
+    if (window.LiveTracker && window.LiveTracker.publish) window.LiveTracker.publish(lat, lng, state.speed);
   }
 
   function pushCrumb(cur) {
@@ -406,7 +408,7 @@
 
   // ---------- views ----------
   function setView(name) {
-    ["route", "speed", "plan"].forEach(function (v) {
+    ["route", "speed", "live", "plan"].forEach(function (v) {
       $("view-" + v).hidden = (v !== name);
     });
     document.querySelectorAll("#tabs button").forEach(function (b) {
@@ -502,6 +504,16 @@
     b.addEventListener("click", function () { setView(b.getAttribute("data-view")); });
   });
 
+  // ---------- expose a small API for the live-tracking module ----------
+  window.BikeApp = {
+    map: map,
+    startGps: startGps,
+    stopGps: stopGps,
+    isTracking: function () { return state.tracking; },
+    getPos: function () { return state.pos; }
+  };
+  window.__setView = setView;
+
   // ---------- init ----------
   buildGauge();
   drawGaugeNeedle(0);
@@ -513,5 +525,5 @@
 
   // optional deep-link: index.html#speed / #plan / #route
   var h = (location.hash || "").replace("#", "");
-  if (h === "speed" || h === "plan" || h === "route") setView(h);
+  if (h === "speed" || h === "plan" || h === "route" || h === "live") setView(h);
 })();

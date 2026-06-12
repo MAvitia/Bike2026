@@ -15,6 +15,7 @@ It runs entirely in the phone's browser — no app install, no server, no API ke
   - 🟢🟢 **12+ mph** — flying
   - Shows your 30-second average, trip average, and max speed, plus a live "on pace?" verdict (goal: 10 mph).
 - **📋 Plan tab** — All five days with maps, stops, and mileage. Save your own **pins** (interest points) — tap the map or use 📍 to mark your GPS spot. Pins are stored on your device.
+- **👥 Live tab** — Optional **live group map**: everyone opens the shared link, enters a name, and sees each other move in real time. Access is gated by an unguessable trip code in the link (treat it like a passcode). Requires a free Firebase project — see **[SETUP.md](SETUP.md)**. Background tracking (page closed) via the OwnTracks app or a 4G GPS tracker is covered there too.
 - **Date-aware** — On a real trip day it opens straight to live tracking for that day. Any other day it opens in browse/training mode.
 
 ## Phone tips
