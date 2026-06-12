@@ -47,10 +47,11 @@
   }
   function ago(ts) {
     var s = Math.max(0, Math.round((Date.now() - ts) / 1000));
-    if (s < 60) return s + "s ago";
-    if (s < 3600) return Math.round(s / 60) + "m ago";
-    return Math.round(s / 3600) + "h ago";
+    if (s < 60) return s + T("agoS");
+    if (s < 3600) return Math.round(s / 60) + T("agoM");
+    return Math.round(s / 3600) + T("agoH");
   }
+  function spdStr(mph) { return speedDisp(mph).toFixed(1) + " " + speedUnit(); }
   function freshness(ts) {
     var d = Date.now() - ts;
     if (d <= LIVE_MS) return "live";
@@ -115,7 +116,7 @@
   function join() {
     var name = ($("liveName").value || "").trim();
     if (!name) { $("liveName").focus(); return; }
-    if (!isConfigured()) { setStatus("Live tracking isn't configured yet — see SETUP.md.", "warn"); return; }
+    if (!isConfigured()) { setStatus(T("liveSetup"), "warn"); return; }
     state.name = name;
     state.riderKey = slug(name);
     localStorage.setItem("biketrip_name", name);
@@ -135,13 +136,13 @@
     }
     renderJoinUI();
     renderOt();
-    setStatus("You're sharing live as " + name + ". Keep this page open while riding.", "ok");
+    setStatus(T("liveSharingAs", { n: name }), "ok");
   }
   function leave() {
     state.joined = false;
     if (state.ref && state.riderKey) state.ref.child(state.riderKey).update({ src: "web-offline", ts: Date.now() });
     renderJoinUI();
-    setStatus("You stopped sharing. Others stay visible.", "");
+    setStatus(T("liveStopped"), "");
   }
 
   // ---------- rendering ----------
@@ -175,8 +176,8 @@
         state.markers[key] = L.marker([r.lat, r.lng], { icon: icon, zIndexOffset: 900 }).addTo(map);
       }
       state.markers[key].bindPopup("<b>" + escapeHtml(r.name || key) + "</b><br>" +
-        (r.spd != null ? r.spd + " mph · " : "") + ago(r.ts || 0) +
-        (r.src && r.src.indexOf("owntracks") === 0 ? "<br><span style='color:#888'>via tracker</span>" : ""));
+        (r.spd != null ? spdStr(r.spd) + " · " : "") + ago(r.ts || 0) +
+        (r.src && r.src.indexOf("owntracks") === 0 ? "<br><span style='color:#888'>" + T("liveViaTracker") + "</span>" : ""));
     });
     // remove markers for riders no longer present
     Object.keys(state.markers).forEach(function (key) {
@@ -194,23 +195,24 @@
     if (!list) return;
     var me = window.BikeApp && window.BikeApp.getPos && window.BikeApp.getPos();
     var keys = Object.keys(state.riders).sort();
-    if (!keys.length) { list.innerHTML = "<p class='muted' style='margin:6px 0'>No one is sharing yet. Be the first — enter your name and join.</p>"; return; }
+    if (!keys.length) { list.innerHTML = "<p class='muted' style='margin:6px 0'>" + T("liveNobody") + "</p>"; return; }
     list.innerHTML = "";
     keys.forEach(function (key) {
       var r = state.riders[key]; if (!r) return;
       var fresh = freshness(r.ts || 0);
       var dot = fresh === "live" ? "#2fae47" : (fresh === "idle" ? "#f4c430" : "#7c8a96");
       var isMe = key === state.riderKey;
-      var dist = (me && typeof r.lat === "number" && !isMe) ? (" · " + haversineMi(me, r).toFixed(1) + " mi away") : "";
+      var dist = (me && typeof r.lat === "number" && !isMe) ?
+        (" · " + distDisp(haversineMi(me, r)).toFixed(1) + " " + distUnit() + T("liveAway")) : "";
       var row = document.createElement("div");
       row.className = "poi-item";
       row.innerHTML =
         "<span><span class='live-dot' style='background:" + dot + "'></span>" +
-        "<b style='color:" + colorFor(key) + "'>" + escapeHtml(r.name || key) + "</b>" + (isMe ? " (you)" : "") +
-        "<br><span class='muted' style='font-size:11px'>" + (r.spd != null ? r.spd + " mph · " : "") + ago(r.ts || 0) + dist +
-        (r.src && r.src.indexOf("owntracks") === 0 ? " · tracker" : "") + "</span></span>";
+        "<b style='color:" + colorFor(key) + "'>" + escapeHtml(r.name || key) + "</b>" + (isMe ? T("liveYou") : "") +
+        "<br><span class='muted' style='font-size:11px'>" + (r.spd != null ? spdStr(r.spd) + " · " : "") + ago(r.ts || 0) + dist +
+        (r.src && r.src.indexOf("owntracks") === 0 ? T("liveTracker") : "") + "</span></span>";
       var go = document.createElement("button");
-      go.textContent = "📍"; go.title = "Center on map";
+      go.textContent = "📍"; go.title = T("centerOnMap");
       go.style.color = "#7fc0ff";
       go.addEventListener("click", function () {
         if (window.__setView) window.__setView("route");
@@ -243,8 +245,8 @@
   // ---------- copy share link ----------
   function copyShare() {
     var url = shareUrl();
-    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { setStatus("Share link copied! Send it to your group.", "ok"); }, function () { prompt("Copy this link:", url); });
-    else prompt("Copy this link:", url);
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { setStatus(T("liveCopied"), "ok"); }, function () { prompt(T("liveCopyPrompt"), url); });
+    else prompt(T("liveCopyPrompt"), url);
   }
 
   // ---------- OwnTracks seamless setup ----------
@@ -271,9 +273,9 @@
       if (hint) {
         hint.hidden = false;
         var needName = !currentName(), needRelay = !(localStorage.getItem("biketrip_otrelay") || window.OT_RELAY_URL || "").trim();
-        hint.textContent = needName && needRelay ? "Enter your name (above) and your relay URL to generate your OwnTracks setup."
-          : needName ? "Enter your name above to generate your OwnTracks setup."
-          : "Paste your relay Worker URL above to generate your OwnTracks setup.";
+        hint.textContent = needName && needRelay ? T("otHintBoth")
+          : needName ? T("otHintName")
+          : T("otHintRelay");
       }
       return;
     }
@@ -297,8 +299,8 @@
   }
   function copyOt() {
     if (!otCurrentUrl) return;
-    if (navigator.clipboard) navigator.clipboard.writeText(otCurrentUrl).then(function () { setStatus("OwnTracks URL copied.", "ok"); }, function () { prompt("Copy this URL:", otCurrentUrl); });
-    else prompt("Copy this URL:", otCurrentUrl);
+    if (navigator.clipboard) navigator.clipboard.writeText(otCurrentUrl).then(function () { setStatus(T("otCopied"), "ok"); }, function () { prompt(T("otCopyPrompt"), otCurrentUrl); });
+    else prompt(T("otCopyPrompt"), otCurrentUrl);
   }
 
   // ---------- init ----------
@@ -332,9 +334,9 @@
     renderJoinUI();
 
     if (!state.configured) {
-      setStatus("Live group tracking isn't set up yet. Follow SETUP.md to add your free Firebase config, then this turns on.", "warn");
+      setStatus(T("liveNotConfig"), "warn");
       var roster = $("liveRoster");
-      if (roster) roster.innerHTML = "<p class='muted'>Once Firebase is configured, everyone who opens the shared link and enters a name appears here live.</p>";
+      if (roster) roster.innerHTML = "<p class='muted'>" + T("liveNotConfigRoster") + "</p>";
       return;
     }
     initFirebase();

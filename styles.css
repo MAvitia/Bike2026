@@ -58,6 +58,12 @@ header h1 small { display: block; font-weight: 500; font-size: 11px; opacity: .8
   white-space: nowrap;
   flex: none;
 }
+#btnLang {
+  flex: none; margin-left: auto;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px; font-size: 17px; line-height: 1;
+  padding: 4px 8px; cursor: pointer;
+}
 
 /* ---------- Views ---------- */
 main { flex: 1 1 auto; position: relative; overflow: hidden; }

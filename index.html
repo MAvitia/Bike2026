@@ -9,12 +9,13 @@
 <title>Bike Trip 2026 — Pittsburgh to DC</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 <div id="app">
   <header>
     <h1>🚲 Bike Trip 2026<small>Pittsburgh → Washington, DC</small></h1>
+    <button id="btnLang" title="Español / English">🇲🇽</button>
     <div id="statusPill">…</div>
   </header>
 
@@ -23,24 +24,24 @@
     <div id="map"></div>
     <div id="mapOverlay">
       <div id="mapFilter">
-        <button data-f="all" class="active">All</button>
-        <button data-f="vehicle">🚗 Vehicle</button>
-        <button data-f="lunch">🍴 Food</button>
-        <button data-f="hotel">🛏️ Hotels</button>
-        <button data-f="poi">⭐ Sights</button>
-        <button data-f="town">🏘️ Towns</button>
+        <button data-f="all" class="active" data-i18n="fAll">All</button>
+        <button data-f="vehicle" data-i18n="fVehicle">🚗 Vehicle</button>
+        <button data-f="lunch" data-i18n="fFood">🍴 Food</button>
+        <button data-f="hotel" data-i18n="fHotels">🛏️ Hotels</button>
+        <button data-f="poi" data-i18n="fSights">⭐ Sights</button>
+        <button data-f="town" data-i18n="fTowns">🏘️ Towns</button>
       </div>
       <div class="chip" id="chipSpeed">
-        <div class="label">Speed</div>
-        <div class="value"><span id="ovSpeed">--</span> <small>mph</small></div>
+        <div class="label" data-i18n="lblSpeed">Speed</div>
+        <div class="value"><span id="ovSpeed">--</span> <small id="ovSpeedUnit">mph</small></div>
       </div>
       <div class="chip" id="chipNext">
-        <div class="label">Next stop · <span id="ovNextDist">--</span></div>
-        <div class="value" id="ovNextName">Start GPS to track</div>
+        <div class="label"><span data-i18n="lblNextStop">Next stop</span> · <span id="ovNextDist">--</span></div>
+        <div class="value" id="ovNextName" data-i18n="startGpsTrack">Start GPS to track</div>
       </div>
     </div>
     <div id="mapSpeed" hidden>
-      <div><span id="msVal">0</span><small>mph</small></div>
+      <div><span id="msVal">0</span><small id="msUnit">mph</small></div>
       <div id="msZone">—</div>
     </div>
     <div id="mapButtons">
@@ -53,30 +54,30 @@
   <!-- SPEED TRAINER VIEW -->
   <main id="view-speed" hidden>
     <div class="scroll">
-      <div class="banner" id="speedBanner">Tap <b>Start GPS</b> below to check your pace. Goal: hold <b>10 mph</b>.</div>
+      <div class="banner" id="speedBanner" data-i18n="speedBanner">Tap <b>Start GPS</b> below to check your pace. Goal: hold <b>10 mph</b>.</div>
       <div class="card" id="gaugeWrap">
-        <h2>Speed Check</h2>
+        <h2 data-i18n="speedCheck">Speed Check</h2>
         <svg id="gauge" viewBox="0 0 300 188" aria-label="speed gauge"></svg>
         <div id="speedReadout">--<small>mph</small></div>
         <div id="zoneLabel">—</div>
         <div class="stat-grid">
-          <div class="stat"><div class="n" id="stAvg">--</div><div class="l">Avg (30s)</div></div>
-          <div class="stat"><div class="n" id="stSession">--</div><div class="l">Trip Avg</div></div>
-          <div class="stat"><div class="n" id="stMax">--</div><div class="l">Max</div></div>
+          <div class="stat"><div class="n" id="stAvg">--</div><div class="l" data-i18n="stAvg">Avg (30s)</div></div>
+          <div class="stat"><div class="n" id="stSession">--</div><div class="l" data-i18n="stSession">Trip Avg</div></div>
+          <div class="stat"><div class="n" id="stMax">--</div><div class="l" data-i18n="stMax">Max</div></div>
         </div>
-        <div id="paceVerdict" class="muted">Start GPS and ride to check your pace.</div>
+        <div id="paceVerdict" class="muted" data-i18n="paceIdle">Start GPS and ride to check your pace.</div>
         <div style="margin-top:14px" class="row">
           <button class="btn" id="btnGps2">Start GPS</button>
-          <button class="btn secondary" id="btnResetStats">Reset</button>
+          <button class="btn secondary" id="btnResetStats" data-i18n="btnReset">Reset</button>
         </div>
       </div>
       <div class="card">
-        <h3>Zone guide</h3>
-        <div class="legend-row"><span class="sw" style="background:var(--blue)"></span> Stopped</div>
-        <div class="legend-row"><span class="sw" style="background:var(--red)"></span> Under 8 mph — too slow</div>
-        <div class="legend-row"><span class="sw" style="background:var(--yellow)"></span> 8–10 mph — almost there</div>
-        <div class="legend-row"><span class="sw" style="background:var(--zgreen)"></span> 10–12 mph — on target ✅</div>
-        <div class="legend-row"><span class="sw" style="background:var(--zgreen2)"></span> 12+ mph — flying! ✅✅</div>
+        <h3 data-i18n="zoneGuide">Zone guide</h3>
+        <div class="legend-row"><span class="sw" style="background:var(--blue)"></span> <span data-i18n="zStopped">Stopped</span></div>
+        <div class="legend-row"><span class="sw" style="background:var(--red)"></span> <span data-i18n="zSlowLine">Under 8 mph — too slow</span></div>
+        <div class="legend-row"><span class="sw" style="background:var(--yellow)"></span> <span data-i18n="zAlmostLine">8–10 mph — almost there</span></div>
+        <div class="legend-row"><span class="sw" style="background:var(--zgreen)"></span> <span data-i18n="zTargetLine">10–12 mph — on target ✅</span></div>
+        <div class="legend-row"><span class="sw" style="background:var(--zgreen2)"></span> <span data-i18n="zFlyLine">12+ mph — flying! ✅✅</span></div>
       </div>
     </div>
   </main>
@@ -87,35 +88,35 @@
       <div class="banner" id="planBanner"></div>
 
       <div class="card">
-        <h2>The Route</h2>
-        <p class="muted">Tap a day to zoom the map to it. ~320 miles over 5 riding days, then the train home.</p>
+        <h2 data-i18n="theRoute">The Route</h2>
+        <p class="muted" id="routeIntro">Tap a day to zoom the map to it. ~320 miles over 5 riding days, then the train home.</p>
         <div class="day-pills" id="dayPills"></div>
       </div>
 
       <div class="card">
-        <h2>⭐ Sights &amp; photo stops</h2>
-        <p class="muted"><span style="color:#ffb300">★★★</span> don't miss · <span style="color:#ffb300">★★</span> worth the stop · <span style="color:#ffb300">★</span> only if you're fresh. Tap a sight to see it on the map — markers labeled <i>(off trail)</i> are short detours.</p>
+        <h2 data-i18n="sightsTitle">⭐ Sights &amp; photo stops</h2>
+        <p class="muted" data-i18n="sightsIntro"><span style="color:#ffb300">★★★</span> don't miss · <span style="color:#ffb300">★★</span> worth the stop · <span style="color:#ffb300">★</span> only if you're fresh. Tap a sight to see it on the map — markers labeled <i>(off trail)</i> are short detours.</p>
         <div id="sightsList"></div>
       </div>
 
       <div class="card">
-        <h2>🚗 Support vehicle stops</h2>
-        <p class="muted">Meet points roughly every 10 miles, each at a spot where a public road or parking area touches the trail. Tap a stop to see it on the map; <b>Map</b> opens the exact coordinates in Google Maps, <b>Go</b> starts navigation. On the Route tab, use the filter bar to show only <b>🚗 Vehicle</b> (+ Hotels) — that's driver mode: the next meet point ahead of the riders pulses on the map and shows in the Next-stop chip with trail miles to go.</p>
+        <h2 data-i18n="vehTitle">🚗 Support vehicle stops</h2>
+        <p class="muted" data-i18n="vehIntro">Meet points roughly every 10 miles, each at a spot where a public road or parking area touches the trail.</p>
         <div id="vehicleList"></div>
       </div>
 
       <div class="card">
-        <h2>Your Pins</h2>
-        <p class="muted" id="poiHelp">Tap anywhere on the map to drop an interest point, or use 📍 to mark your GPS spot. Saved on this device.</p>
+        <h2 data-i18n="pinsTitle">Your Pins</h2>
+        <p class="muted" id="poiHelp" data-i18n="pinsIntro">Tap anywhere on the map to drop an interest point, or use 📍 to mark your GPS spot. Saved on this device.</p>
         <div id="poiList"></div>
-        <button class="btn danger" id="btnClearPois" style="margin-top:10px" hidden>Clear all my pins</button>
+        <button class="btn danger" id="btnClearPois" style="margin-top:10px" hidden data-i18n="clearPins">Clear all my pins</button>
       </div>
 
       <div id="dayCards"></div>
 
       <div class="card">
-        <h3>About this app</h3>
-        <p class="muted">Live position, speed, and distances come from your phone's GPS — keep the screen on while riding. The drawn route follows the actual GAP and C&amp;O Canal Towpath (geometry from OpenStreetMap). Map tiles need a data connection.</p>
+        <h3 data-i18n="aboutTitle">About this app</h3>
+        <p class="muted" data-i18n="aboutText">Live position, speed, and distances come from your phone's GPS — keep the screen on while riding. The drawn route follows the actual GAP and C&amp;O Canal Towpath (geometry from OpenStreetMap). Map tiles need a data connection.</p>
       </div>
     </div>
   </main>
@@ -126,62 +127,62 @@
       <div class="banner" id="liveStatus" style="display:none"></div>
 
       <div class="card">
-        <h2>👥 Live Group Map</h2>
-        <p class="muted">Everyone who opens this link and enters a name shows up live on the map. Your phone shares its location while this page is open.</p>
+        <h2 data-i18n="liveTitle">👥 Live Group Map</h2>
+        <p class="muted" data-i18n="liveIntro">Everyone who opens this link and enters a name shows up live on the map. Your phone shares its location while this page is open.</p>
 
         <div id="liveJoinBox">
-          <input type="text" id="liveName" maxlength="24" placeholder="Your name (e.g. Manuel)" autocomplete="name">
-          <button class="btn" id="btnLiveJoin">Share my live location</button>
+          <input type="text" id="liveName" maxlength="24" placeholder="Your name (e.g. Manuel)" data-i18n-ph="liveNamePh" autocomplete="name">
+          <button class="btn" id="btnLiveJoin" data-i18n="liveJoin">Share my live location</button>
         </div>
 
         <div id="liveJoinedBox" hidden>
-          <p>✅ Sharing live as <b id="liveWho"></b>. Keep this page open while riding.</p>
-          <button class="btn secondary" id="btnLiveLeave">Stop sharing</button>
+          <p><span data-i18n="liveJoinedA">✅ Sharing live as </span><b id="liveWho"></b><span data-i18n="liveJoinedB">. Keep this page open while riding.</span></p>
+          <button class="btn secondary" id="btnLiveLeave" data-i18n="liveLeave">Stop sharing</button>
         </div>
       </div>
 
       <div class="card">
-        <h3>Who's on the map</h3>
+        <h3 data-i18n="liveWho">Who's on the map</h3>
         <div id="liveRoster"></div>
       </div>
 
       <div class="card">
-        <h3>Invite your group</h3>
-        <p class="muted">Share this link — it contains your private trip code. Treat it like a passcode; only people with the link can see locations.</p>
-        <p class="muted">Trip code: <code id="liveRoomCode">—</code></p>
-        <button class="btn" id="btnLiveShare">Copy share link</button>
+        <h3 data-i18n="liveInvite">Invite your group</h3>
+        <p class="muted" data-i18n="liveInviteText">Share this link — it contains your private trip code. Treat it like a passcode; only people with the link can see locations.</p>
+        <p class="muted"><span data-i18n="liveTripCode">Trip code:</span> <code id="liveRoomCode">—</code></p>
+        <button class="btn" id="btnLiveShare" data-i18n="liveCopy">Copy share link</button>
       </div>
 
       <div class="card">
-        <h3>Track in the background (optional)</h3>
-        <p class="muted">A web page only shares location while it's open. To keep transmitting with the screen off, install the free <b>OwnTracks</b> app — this section builds its setup for you.</p>
+        <h3 data-i18n="otTitle">Track in the background (optional)</h3>
+        <p class="muted" data-i18n="otIntro">A web page only shares location while it's open. To keep transmitting with the screen off, install the free <b>OwnTracks</b> app — this section builds its setup for you.</p>
 
         <ol class="ot-steps">
-          <li>Deploy the relay once (free Cloudflare Worker) — see <b>SETUP.md</b>. Paste its URL below.</li>
-          <li>Enter your name above (same name = one marker).</li>
-          <li>Install <b>OwnTracks</b>, open it → <b>Settings → Configuration</b>, and either scan the QR or paste the URL.</li>
+          <li data-i18n="otStep1">Deploy the relay once (free Cloudflare Worker) — see <b>SETUP.md</b>. Paste its URL below.</li>
+          <li data-i18n="otStep2">Enter your name above (same name = one marker).</li>
+          <li data-i18n="otStep3">Install <b>OwnTracks</b>, open it → <b>Settings → Configuration</b>, and either scan the QR or paste the URL.</li>
         </ol>
 
-        <label class="ot-label" for="otRelay">Your relay Worker URL</label>
+        <label class="ot-label" for="otRelay" data-i18n="otRelayLbl">Your relay Worker URL</label>
         <input type="text" id="otRelay" placeholder="https://biketrip-owntracks-relay.<you>.workers.dev" autocapitalize="off" autocomplete="off" spellcheck="false">
 
         <div id="otReady" hidden>
-          <p class="ot-label" style="margin-top:12px">Scan this inside the OwnTracks app (Settings → Configuration → scan):</p>
+          <p class="ot-label" style="margin-top:12px" data-i18n="otScan">Scan this inside the OwnTracks app (Settings → Configuration → scan):</p>
           <div id="otQr"></div>
-          <p class="ot-label" style="margin-top:12px">…or set <b>Mode = HTTP</b> in OwnTracks and paste this <b>URL</b>:</p>
+          <p class="ot-label" style="margin-top:12px" data-i18n="otOrUrl">…or set <b>Mode = HTTP</b> in OwnTracks and paste this <b>URL</b>:</p>
           <div id="otUrl" class="ot-url"></div>
-          <button class="btn secondary" id="btnOtCopy">Copy OwnTracks URL</button>
+          <button class="btn secondary" id="btnOtCopy" data-i18n="otCopyBtn">Copy OwnTracks URL</button>
         </div>
-        <p id="otHint" class="muted" style="margin-top:10px">Enter your name and relay URL above to generate your OwnTracks setup.</p>
+        <p id="otHint" class="muted" style="margin-top:10px" data-i18n="otHintBoth">Enter your name and relay URL above to generate your OwnTracks setup.</p>
       </div>
     </div>
   </main>
 
   <nav id="tabs">
-    <button data-view="route" class="active"><span class="ic">🗺️</span>Route</button>
-    <button data-view="speed"><span class="ic">⚡</span>Speed</button>
-    <button data-view="live"><span class="ic">👥<span id="liveTabBadge" class="tab-badge" style="display:none"></span></span>Live</button>
-    <button data-view="plan"><span class="ic">📋</span>Plan</button>
+    <button data-view="route" class="active"><span class="ic">🗺️</span><span data-i18n="tabRoute">Route</span></button>
+    <button data-view="speed"><span class="ic">⚡</span><span data-i18n="tabSpeed">Speed</span></button>
+    <button data-view="live"><span class="ic">👥<span id="liveTabBadge" class="tab-badge" style="display:none"></span></span><span data-i18n="tabLive">Live</span></button>
+    <button data-view="plan"><span class="ic">📋</span><span data-i18n="tabPlan">Plan</span></button>
   </nav>
 </div>
 
@@ -190,12 +191,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="data.js?v=5"></script>
-<script src="route-data.js?v=5"></script>
-<script src="stops-data.js?v=5"></script>
-<script src="sights-data.js?v=5"></script>
-<script src="app.js?v=5"></script>
-<script src="firebase-config.js?v=5"></script>
-<script src="live.js?v=5"></script>
+<script src="i18n.js?v=6"></script>
+<script src="data.js?v=6"></script>
+<script src="route-data.js?v=6"></script>
+<script src="stops-data.js?v=6"></script>
+<script src="sights-data.js?v=6"></script>
+<script src="app.js?v=6"></script>
+<script src="firebase-config.js?v=6"></script>
+<script src="live.js?v=6"></script>
 </body>
 </html>

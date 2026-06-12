@@ -28,17 +28,18 @@
       Math.sin(dLng / 2) * Math.sin(dLng / 2);
     return 2 * R * Math.asin(Math.sqrt(s));
   }
-  function metersToDistStr(m) {
-    var mi = m / 1609.34;
-    if (mi < 0.1) return Math.round(m / 0.3048) + " ft";
-    return mi.toFixed(1) + " mi";
-  }
+  // metersToDistStr / speedDisp / distDisp / units come from i18n.js
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function fmtDate(d) {
+    return d.toLocaleDateString(LANG === "es" ? "es-MX" : "en-US",
+      { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  }
+  function descOf(o) { return (LANG === "es" && o.desc_es) ? o.desc_es : o.desc; }
   function gmapsUrl(lat, lng) { return "https://maps.google.com/?q=" + lat + "," + lng; }
   function gnavUrl(lat, lng) { return "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng; }
   function gmapsLinks(lat, lng) {
-    return "<a class='popup-link' target='_blank' rel='noopener' href='" + gmapsUrl(lat, lng) + "'>📍 Google Maps</a>" +
-      " · <a class='popup-link' target='_blank' rel='noopener' href='" + gnavUrl(lat, lng) + "'>🧭 Navigate</a>";
+    return "<a class='popup-link' target='_blank' rel='noopener' href='" + gmapsUrl(lat, lng) + "'>" + T("openMaps") + "</a>" +
+      " · <a class='popup-link' target='_blank' rel='noopener' href='" + gnavUrl(lat, lng) + "'>" + T("navigate") + "</a>";
   }
 
   // ---------- state ----------
@@ -133,9 +134,7 @@
 
   // star-rating helpers (sights: 3 = don't miss, 2 = worth it, 1 = if fresh)
   function starsTxt(n) { return "★★★".slice(0, n); }
-  function starsLabel(n) {
-    return n === 3 ? "don't miss" : (n === 2 ? "worth the stop" : "only if you're fresh");
-  }
+  function starsLabel(n) { return T("star" + n); }
 
   // waypoint markers (coordinates are snapped onto the trail line)
   W.forEach(function (w, i) {
@@ -148,9 +147,9 @@
     var starLine = w.stars ? "<span style='color:#c79200'>" + starsTxt(w.stars) + "</span> " +
       "<span style='color:#555'>(" + starsLabel(w.stars) + ")</span><br>" : "";
     var html = "<b>" + (TYPE_ICON[w.type] || "") + " " + w.name + "</b><br>" +
-      "<span style='color:#555'>Day " + w.day + "</span><br>" + starLine + w.desc +
+      "<span style='color:#555'>" + T("day") + " " + w.day + "</span><br>" + starLine + descOf(w) +
       "<br>" + gmapsLinks(w.lat, w.lng) +
-      "<br><span class='popup-btn' data-target='" + i + "'>Set as next stop →</span>";
+      "<br><span class='popup-btn' data-target='" + i + "'>" + T("setNextStop") + "</span>";
     m.bindPopup(html);
   });
 
@@ -169,9 +168,9 @@
       .addTo(typeLayers.poi);
     m.bindPopup(
       "<b><span style='color:#c79200'>" + starsTxt(s.stars) + "</span> " + s.name + "</b><br>" +
-      "<span style='color:#555'>Day " + s.day + " · " + starsLabel(s.stars) +
-      (s.snap ? "" : " · short detour off trail") + "</span><br>" +
-      s.desc + "<br>" + gmapsLinks(s.lat, s.lng));
+      "<span style='color:#555'>" + T("day") + " " + s.day + " · " + starsLabel(s.stars) +
+      (s.snap ? "" : " · " + T("shortDetour")) + "</span><br>" +
+      descOf(s) + "<br>" + gmapsLinks(s.lat, s.lng));
     sightMarkers.push(m);
   });
 
@@ -182,16 +181,23 @@
   function vehIcon(s, isNext) {
     return L.divIcon({
       className: "",
-      html: "<div class='veh-stop" + (isNext ? " veh-next" : "") + "'>🚗<span>" + s.dayMile.toFixed(0) + "</span></div>",
+      html: "<div class='veh-stop" + (isNext ? " veh-next" : "") + "'>🚗<span>" + distDisp(s.dayMile).toFixed(0) + "</span></div>",
       iconSize: [34, 30], iconAnchor: [17, 15]
     });
+  }
+  function stopName(s) {
+    if (s.name === "Parking area") return T("parkingArea");
+    if (s.name === "Road crossing") return T("roadCrossing");
+    return s.name;
   }
   VSTOPS.forEach(function (s, i) {
     var m = L.marker([s.lat, s.lng], { icon: vehIcon(s, false), zIndexOffset: 600 }).addTo(vehicleLayer);
     m.bindPopup(
-      "<b>🚗 Vehicle stop " + (i + 1) + " — Day " + s.day + " · mile " + s.dayMile + "</b><br>" +
-      s.name + (s.kind === "parking" ? " (parking)" : " (road access)") +
-      "<br><span style='color:#555'>Trip mile " + s.tripMile + "</span><br>" + gmapsLinks(s.lat, s.lng));
+      "<b>🚗 " + T("vehStop") + " " + (i + 1) + " — " + T("day") + " " + s.day +
+      " · " + T("mile") + " " + distDisp(s.dayMile).toFixed(1) + "</b><br>" +
+      stopName(s) + (s.kind === "parking" ? " (" + T("parking") + ")" : " (" + T("roadAccess") + ")") +
+      "<br><span style='color:#555'>" + T("tripMile") + " " + distDisp(s.tripMile).toFixed(1) + "</span><br>" +
+      gmapsLinks(s.lat, s.lng));
     vehMarkers.push(m);
   });
   function setNextVeh(idx) {
@@ -250,9 +256,9 @@
   // tap map to drop a pin
   map.on("click", function (e) {
     if (e.originalEvent && e.originalEvent._fromMarker) return;
-    var name = prompt("Name this interest point:", "Pin");
+    var name = prompt(T("namePin"), T("pin"));
     if (name === null) return;
-    addPoi({ id: Date.now(), name: name || "Pin", lat: e.latlng.lat, lng: e.latlng.lng });
+    addPoi({ id: Date.now(), name: name || T("pin"), lat: e.latlng.lat, lng: e.latlng.lng });
   });
 
   map.on("dragstart", function () { state.follow = false; });
@@ -282,7 +288,7 @@
 
   // ---------- GPS ----------
   function startGps() {
-    if (!navigator.geolocation) { alert("This device has no GPS / geolocation support."); return; }
+    if (!navigator.geolocation) { alert(T("noGps")); return; }
     state.tracking = true;
     state.follow = true;
     state.lastFix = null;
@@ -303,8 +309,8 @@
   function toggleGps() { state.tracking ? stopGps() : startGps(); }
 
   function onErr(err) {
-    var msg = "GPS error: " + err.message;
-    if (err.code === 1) msg = "Location permission denied. Enable it in your browser settings and reload.";
+    var msg = T("gpsError") + err.message;
+    if (err.code === 1) msg = T("gpsDenied");
     $("speedBanner").innerHTML = "⚠️ " + msg;
     $("speedBanner").style.display = "block";
   }
@@ -385,16 +391,16 @@
   }
 
   function zoneFor(mph) {
-    if (mph < STOPPED_MPH) return { name: "STOPPED", color: "#2b82d4" };
-    if (mph < 8) return { name: "TOO SLOW", color: "#e63946" };
-    if (mph < 10) return { name: "ALMOST THERE", color: "#f4c430" };
-    if (mph < 12) return { name: "ON TARGET ✅", color: "#2fae47" };
-    return { name: "FLYING ✅✅", color: "#0b8f2e" };
+    if (mph < STOPPED_MPH) return { name: T("zSTOP"), color: "#2b82d4" };
+    if (mph < 8) return { name: T("zSLOW"), color: "#e63946" };
+    if (mph < 10) return { name: T("zALMOST"), color: "#f4c430" };
+    if (mph < 12) return { name: T("zON"), color: "#2fae47" };
+    return { name: T("zFLY"), color: "#0b8f2e" };
   }
 
   function updateReadout(mph) {
     var z = zoneFor(mph);
-    var txt = mph < STOPPED_MPH ? "0" : mph.toFixed(1);
+    var txt = mph < STOPPED_MPH ? "0" : speedDisp(mph).toFixed(1);
     $("ovSpeed").textContent = txt;
     $("chipSpeed").querySelector(".value").style.color = z.color;
     // big on-map speed overlay (visible while GPS is on)
@@ -404,22 +410,23 @@
     mz.textContent = z.name;
     mz.style.color = z.color;
     var ro = $("speedReadout");
-    ro.innerHTML = txt + "<small>mph</small>";
+    ro.innerHTML = txt + "<small>" + speedUnit() + "</small>";
     ro.style.color = z.color;
     var zl = $("zoneLabel");
     zl.textContent = z.name; zl.style.color = z.color;
 
-    $("stAvg").textContent = state.samples.length ? rollingAvg().toFixed(1) : "--";
-    $("stSession").textContent = sessionAvg() ? sessionAvg().toFixed(1) : "--";
-    $("stMax").textContent = state.maxSpeed ? state.maxSpeed.toFixed(1) : "--";
+    $("stAvg").textContent = state.samples.length ? speedDisp(rollingAvg()).toFixed(1) : "--";
+    $("stSession").textContent = sessionAvg() ? speedDisp(sessionAvg()).toFixed(1) : "--";
+    $("stMax").textContent = state.maxSpeed ? speedDisp(state.maxSpeed).toFixed(1) : "--";
 
     var v = $("paceVerdict");
-    if (!state.tracking) { v.textContent = "Start GPS and ride to check your pace."; v.style.color = "var(--muted)"; v.style.background = "var(--panel-2)"; return; }
+    if (!state.tracking) { v.textContent = T("paceIdle"); v.style.color = "var(--muted)"; v.style.background = "var(--panel-2)"; return; }
     var ra = rollingAvg();
-    if (ra < STOPPED_MPH) { v.textContent = "⏸ Stopped"; v.style.color = "#bcd6f5"; }
-    else if (ra >= 10) { v.innerHTML = "✅ On pace! Holding " + ra.toFixed(1) + " mph"; v.style.color = "#b6f0c6"; }
-    else if (ra >= 8) { v.innerHTML = "🟡 Close — " + ra.toFixed(1) + " mph, push a bit"; v.style.color = "#ffe79a"; }
-    else { v.innerHTML = "🔴 Under target — " + ra.toFixed(1) + " mph"; v.style.color = "#ffc1c7"; }
+    var raTxt = speedDisp(ra).toFixed(1) + " " + speedUnit();
+    if (ra < STOPPED_MPH) { v.textContent = T("vStopped"); v.style.color = "#bcd6f5"; }
+    else if (ra >= 10) { v.innerHTML = T("vOnPace", { s: raTxt }); v.style.color = "#b6f0c6"; }
+    else if (ra >= 8) { v.innerHTML = T("vClose", { s: raTxt }); v.style.color = "#ffe79a"; }
+    else { v.innerHTML = T("vUnder", { s: raTxt }); v.style.color = "#ffc1c7"; }
   }
 
   // ---------- gauge (SVG) ----------
@@ -454,7 +461,7 @@
       var aOut = { x: CX + (R + 9) * Math.cos((180 - 180 * (v / GAUGE_MAX)) * Math.PI / 180), y: CY - (R + 9) * Math.sin((180 - 180 * (v / GAUGE_MAX)) * Math.PI / 180) };
       s += "<line x1='" + aIn.x.toFixed(1) + "' y1='" + aIn.y.toFixed(1) + "' x2='" + aOut.x.toFixed(1) + "' y2='" + aOut.y.toFixed(1) + "' stroke='#cdd6dd' stroke-width='2'/>";
       var lp = { x: CX + (R + 22) * Math.cos((180 - 180 * (v / GAUGE_MAX)) * Math.PI / 180), y: CY - (R + 22) * Math.sin((180 - 180 * (v / GAUGE_MAX)) * Math.PI / 180) };
-      s += "<text x='" + lp.x.toFixed(1) + "' y='" + (lp.y + 4).toFixed(1) + "' fill='#9fb0bd' font-size='12' text-anchor='middle'>" + v + "</text>";
+      s += "<text x='" + lp.x.toFixed(1) + "' y='" + (lp.y + 4).toFixed(1) + "' fill='#9fb0bd' font-size='12' text-anchor='middle'>" + Math.round(speedDisp(v)) + "</text>";
     });
     // needle group (updated later)
     s += "<g id='needle'></g>";
@@ -496,14 +503,16 @@
       }
     }
     if (idx < 0) { // past the last stop
-      $("ovNextName").textContent = "🏁 Day " + VSTOPS[VSTOPS.length - 1].day + " finish";
+      $("ovNextName").textContent = T("finishLbl", { d: VSTOPS[VSTOPS.length - 1].day });
       $("ovNextDist").textContent = "--";
       setNextVeh(null);
       return;
     }
     var s = VSTOPS[idx];
-    $("ovNextName").textContent = "🚗 #" + (idx + 1) + " " + s.name + " (Day " + s.day + " · mi " + s.dayMile + ")";
-    $("ovNextDist").textContent = cm != null ? (s.tripMile - cm).toFixed(1) + " trail mi" : "--";
+    $("ovNextName").textContent = "🚗 #" + (idx + 1) + " " + stopName(s) +
+      " (" + T("day") + " " + s.day + " · " + distDisp(s.dayMile).toFixed(1) + " " + distUnit() + ")";
+    $("ovNextDist").textContent = cm != null ?
+      distDisp(s.tripMile - cm).toFixed(1) + " " + distUnit() + " " + T("trailDistAhead") : "--";
     setNextVeh(idx);
   }
 
@@ -537,7 +546,7 @@
       }).addTo(poiLayer).bindPopup("<b>📌 " + p.name + "</b><br>" + gmapsLinks(p.lat, p.lng));
     });
     var list = $("poiList");
-    if (!state.pois.length) { list.innerHTML = "<p class='muted' style='margin:6px 0'>No pins yet.</p>"; $("btnClearPois").hidden = true; return; }
+    if (!state.pois.length) { list.innerHTML = "<p class='muted' style='margin:6px 0'>" + T("noPins") + "</p>"; $("btnClearPois").hidden = true; return; }
     $("btnClearPois").hidden = false;
     list.innerHTML = "";
     state.pois.forEach(function (p) {
@@ -556,10 +565,10 @@
   }
 
   function markHere() {
-    if (!state.pos) { alert("Start GPS first, then tap 📍 to mark where you are."); return; }
+    if (!state.pos) { alert(T("needGpsPin")); return; }
     var d = new Date();
-    var def = "Spot " + pad(d.getHours()) + ":" + pad(d.getMinutes());
-    var name = prompt("Name this spot:", def);
+    var def = T("spot") + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    var name = prompt(T("nameSpot"), def);
     if (name === null) return;
     addPoi({ id: Date.now(), name: name || def, lat: state.pos.lat, lng: state.pos.lng });
   }
@@ -572,10 +581,10 @@
     $("chipSpeed").hidden = state.tracking;
     if (state.tracking) {
       b1.textContent = "⏹"; b1.classList.add("live"); b1.classList.remove("primary");
-      b2.textContent = "Stop GPS"; b2.classList.add("secondary");
+      b2.textContent = T("btnStopGps"); b2.classList.add("secondary");
     } else {
       b1.textContent = "▶"; b1.classList.remove("live"); b1.classList.add("primary");
-      b2.textContent = "Start GPS"; b2.classList.remove("secondary");
+      b2.textContent = T("btnStartGps"); b2.classList.remove("secondary");
     }
   }
   function requestWakeLock() {
@@ -610,39 +619,48 @@
 
     state.todayDay = riding ? riding.day : null;
     if (riding) {
-      pill.textContent = "Day " + riding.day + " · today";
+      pill.textContent = T("pillDayToday", { d: riding.day });
       planBanner.className = "banner live";
-      planBanner.innerHTML = "🚴 <b>Today is Day " + riding.day + ":</b> " + riding.from + " → " + riding.to + " (" + riding.miles + " mi). Tap <b>Start GPS</b> on the Route tab to track.";
+      planBanner.innerHTML = T("bannerToday", {
+        d: riding.day, from: riding.from, to: riding.to,
+        mi: distDisp(riding.miles).toFixed(0) + " " + distUnit()
+      });
       // target the start of today's segment
       var first = W.findIndex(function (w) { return w.day === riding.day; });
       var prevEnd = W.map(function (w, i) { return w.day === riding.day - 1 ? i : -1; }).filter(function (i) { return i >= 0; });
       state.targetIdx = prevEnd.length ? prevEnd[prevEnd.length - 1] + 1 : (first >= 0 ? first : null);
       setView("route");
     } else if (today.getTime() === end.getTime()) {
-      pill.textContent = "Travel home day 🚆";
+      pill.textContent = T("pillTravelHome");
       planBanner.className = "banner";
-      planBanner.innerHTML = "🚆 <b>Travel day:</b> train home, DC → Connellsville.";
+      planBanner.innerHTML = T("bannerTravel");
     } else if (today < start) {
       var days = Math.round((start - today) / 86400000);
-      pill.textContent = "Starts in " + days + " day" + (days === 1 ? "" : "s");
+      var plural = days === 1 ? "" : "s";
+      pill.textContent = T("pillStartsIn", { n: days, s: plural });
       planBanner.className = "banner";
-      planBanner.innerHTML = "📅 Trip starts <b>" + start.toDateString() + "</b> — " + days + " day" + (days === 1 ? "" : "s") + " to go. Use the <b>Speed</b> tab to train, or browse the route below. <br><br>It's not a trip day, so the app is in <b>browse mode</b> — drop pins, scout stops, and check your pace.";
-      speedBanner.innerHTML = "🏋️ <b>Training mode.</b> Tap <b>Start GPS</b> and ride — goal is a steady <b>10 mph</b>. Watch the gauge turn green!";
+      planBanner.innerHTML = T("bannerBefore", { date: fmtDate(start), n: days, s: plural });
+      speedBanner.innerHTML = T("bannerTrain");
       setView("plan");
     } else {
-      pill.textContent = "Trip complete 🎉";
+      pill.textContent = T("pillDone");
       planBanner.className = "banner live";
-      planBanner.innerHTML = "🎉 <b>You did it</b> — Pittsburgh to DC! Browse the route and your pins below.";
+      planBanner.innerHTML = T("bannerDone");
     }
   }
 
   // ---------- plan tab content ----------
   function buildPlan() {
+    var totalMi = 0;
+    TRIP.days.forEach(function (d) { totalMi += d.miles; });
+    $("routeIntro").innerHTML = T("routeIntro", {
+      dist: Math.round(distDisp(totalMi) / 5) * 5 + " " + distUnit()
+    });
     var pills = $("dayPills");
     TRIP.days.forEach(function (d) {
       var b = document.createElement("div");
       b.className = "day-pill";
-      b.innerHTML = "<span class='dot' style='background:" + d.color + "'></span>Day " + d.day;
+      b.innerHTML = "<span class='dot' style='background:" + d.color + "'></span>" + T("day") + " " + d.day;
       b.title = d.from + " → " + d.to;
       b.addEventListener("click", function () {
         setView("route");
@@ -660,8 +678,9 @@
       var card = document.createElement("div");
       card.className = "card";
       card.innerHTML =
-        "<h2><span style='color:" + d.color + "'>●</span> Day " + d.day + " — " + d.from + " → " + d.to + "</h2>" +
-        "<p class='muted'>" + new Date(dayMidnight(d.date)).toDateString() + " · <b style='color:#fff'>" + d.miles + " mi</b></p>" +
+        "<h2><span style='color:" + d.color + "'>●</span> " + T("day") + " " + d.day + " — " + d.from + " → " + d.to + "</h2>" +
+        "<p class='muted'>" + fmtDate(dayMidnight(d.date)) + " · <b style='color:#fff'>" +
+        distDisp(d.miles).toFixed(1) + " " + distUnit() + "</b></p>" +
         "<ul style='margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.7'>" + li + "</ul>";
       dc.appendChild(card);
     });
@@ -679,7 +698,7 @@
         var dInfo = TRIP.days[curDay - 1];
         var h = document.createElement("div");
         h.className = "veh-day";
-        h.innerHTML = "<span class='dot' style='background:" + dInfo.color + "'></span>Day " +
+        h.innerHTML = "<span class='dot' style='background:" + dInfo.color + "'></span>" + T("day") + " " +
           curDay + " — " + dInfo.from + " → " + dInfo.to;
         box.appendChild(h);
       }
@@ -687,9 +706,9 @@
       row.className = "veh-row";
       row.innerHTML =
         "<span class='veh-name'><span class='stars s" + s.stars + "'>" + starsTxt(s.stars) + "</span> " +
-        s.name + (s.snap ? "" : " <small class='muted'>(off trail)</small>") + "</span>" +
+        s.name + (s.snap ? "" : " <small class='muted'>(" + T("offTrail") + ")</small>") + "</span>" +
         "<span class='veh-links'>" +
-        "<a target='_blank' rel='noopener' href='" + gmapsUrl(s.lat, s.lng) + "'>Map</a>" +
+        "<a target='_blank' rel='noopener' href='" + gmapsUrl(s.lat, s.lng) + "'>" + T("lnkMap") + "</a>" +
         "</span>";
       row.querySelector(".veh-name").addEventListener("click", function () {
         setView("route");
@@ -717,17 +736,18 @@
         var dInfo = TRIP.days[curDay - 1];
         var h = document.createElement("div");
         h.className = "veh-day";
-        h.innerHTML = "<span class='dot' style='background:" + dInfo.color + "'></span>Day " +
+        h.innerHTML = "<span class='dot' style='background:" + dInfo.color + "'></span>" + T("day") + " " +
           curDay + " — " + dInfo.from + " → " + dInfo.to;
         box.appendChild(h);
       }
       var row = document.createElement("div");
       row.className = "veh-row";
       row.innerHTML =
-        "<span class='veh-name'>🚗 <b>#" + (i + 1) + "</b> mi " + s.dayMile.toFixed(0) + " · " + s.name + "</span>" +
+        "<span class='veh-name'>🚗 <b>#" + (i + 1) + "</b> " + distUnit() + " " + distDisp(s.dayMile).toFixed(0) +
+        " · " + stopName(s) + "</span>" +
         "<span class='veh-links'>" +
-        "<a target='_blank' rel='noopener' href='" + gmapsUrl(s.lat, s.lng) + "'>Map</a>" +
-        "<a target='_blank' rel='noopener' href='" + gnavUrl(s.lat, s.lng) + "'>Go</a>" +
+        "<a target='_blank' rel='noopener' href='" + gmapsUrl(s.lat, s.lng) + "'>" + T("lnkMap") + "</a>" +
+        "<a target='_blank' rel='noopener' href='" + gnavUrl(s.lat, s.lng) + "'>" + T("lnkGo") + "</a>" +
         "</span>";
       row.querySelector(".veh-name").addEventListener("click", function () {
         setView("route");
@@ -757,7 +777,7 @@
     updateReadout(state.speed);
   });
   $("btnClearPois").addEventListener("click", function () {
-    if (confirm("Delete all your pins on this device?")) { state.pois = []; savePois(); renderPois(); }
+    if (confirm(T("confirmClearPins"))) { state.pois = []; savePois(); renderPois(); }
   });
   document.querySelectorAll("#tabs button").forEach(function (b) {
     b.addEventListener("click", function () { setView(b.getAttribute("data-view")); });
@@ -774,6 +794,8 @@
   window.__setView = setView;
 
   // ---------- init ----------
+  $("ovSpeedUnit").textContent = speedUnit();
+  $("msUnit").textContent = speedUnit();
   buildGauge();
   drawGaugeNeedle(0);
   loadPois();

@@ -41,6 +41,10 @@ It runs entirely in the phone's browser — no app install, no server, no API ke
 > `git init && git add . && git commit -m "Bike trip site" && git branch -M main`
 > then `git remote add origin <repo-url> && git push -u origin main`, and enable Pages as above.
 
+## Language & units
+
+The 🇲🇽/🇺🇸 button in the header toggles Spanish + metric (km, km/h) vs English + imperial (mi, mph). UI strings live in **`i18n.js`**; waypoint and sight descriptions have `desc_es` fields in `data.js` / `sights-data.js`. The choice is saved per device.
+
 ## Editing the route
 
 All stops, coordinates, day colors, and mileages live in **`data.js`** — edit that file to add/move stops or tweak descriptions. No build step; just refresh.
