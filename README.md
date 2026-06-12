@@ -29,7 +29,7 @@ It runs entirely in the phone's browser — no app install, no server, no API ke
 
 1. Create a new GitHub repo (e.g. `biketrip-2026`).
 2. Upload **all the files in this `website` folder** to the repo root:
-   `index.html`, `styles.css`, `app.js`, `data.js`, `route-data.js`.
+   `index.html`, `styles.css`, `app.js`, `data.js`, `route-data.js`, `stops-data.js`.
 3. In the repo go to **Settings → Pages**.
 4. Under **Build and deployment → Source**, choose **Deploy from a branch**.
 5. Pick branch **main** and folder **/ (root)**, then **Save**.
@@ -52,3 +52,5 @@ python tools/build_route.py
 ```
 
 The script snaps every waypoint onto the trail and routes between them along the trail itself (never roads), so the line always stays on the GAP/C&O. `tools/plot_route.py` renders a quick PNG to eyeball the result.
+
+**`stops-data.js`** holds the support-vehicle meet points (~every 10 mi, each where a public road or parking lot touches the trail, found via OpenStreetMap). Regenerate with `python tools/build_stops.py` — it also re-snaps all `data.js` waypoint coordinates onto the trail line. On the Route tab, a filter bar toggles marker categories (Vehicle / Food / Hotels / Sights / Towns); leaving only **🚗 Vehicle** (+ Hotels) on activates driver mode, which highlights the next meet point ahead of the riders. Every marker popup includes Google Maps / Navigate links.

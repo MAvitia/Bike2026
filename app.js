@@ -34,6 +34,12 @@
     return mi.toFixed(1) + " mi";
   }
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function gmapsUrl(lat, lng) { return "https://maps.google.com/?q=" + lat + "," + lng; }
+  function gnavUrl(lat, lng) { return "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng; }
+  function gmapsLinks(lat, lng) {
+    return "<a class='popup-link' target='_blank' rel='noopener' href='" + gmapsUrl(lat, lng) + "'>📍 Google Maps</a>" +
+      " · <a class='popup-link' target='_blank' rel='noopener' href='" + gnavUrl(lat, lng) + "'>🧭 Navigate</a>";
+  }
 
   // ---------- state ----------
   var state = {
@@ -56,8 +62,10 @@
   var W = TRIP.waypoints;
 
   // ---------- map ----------
-  var map = L.map("map", { zoomControl: true, attributionControl: true })
+  // zoom control lives bottom-left so it never collides with the top overlay
+  var map = L.map("map", { zoomControl: false, attributionControl: true })
     .setView([39.6, -78.4], 8);
+  L.control.zoom({ position: "bottomleft" }).addTo(map);
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19, attribution: "&copy; OpenStreetMap"
   }).addTo(map);
@@ -87,19 +95,118 @@
     }
   });
 
-  // waypoint markers
+  // flat route + cumulative trail miles (used by driver mode)
+  var routeFlat = [], routeMiles = [];
+  TRIP.days.forEach(function (d) {
+    dayRoutePts(d.day).forEach(function (p) {
+      if (routeFlat.length) {
+        var prev = routeFlat[routeFlat.length - 1];
+        if (prev[0] === p[0] && prev[1] === p[1]) return;
+        routeMiles.push(routeMiles[routeMiles.length - 1] +
+          haversine({ lat: prev[0], lng: prev[1] }, { lat: p[0], lng: p[1] }) / 1609.34);
+      } else {
+        routeMiles.push(0);
+      }
+      routeFlat.push(p);
+    });
+  });
+  function nearestRouteMile(pos) {
+    var best = -1, bd = Infinity;
+    for (var i = 0; i < routeFlat.length; i++) {
+      var dy = routeFlat[i][0] - pos.lat, dx = routeFlat[i][1] - pos.lng;
+      var d = dy * dy + dx * dx;
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best >= 0 ? routeMiles[best] : null;
+  }
+
+  // marker layers, one per filter category
+  var FILTER_KEYS = ["vehicle", "hotel", "lunch", "poi", "town"];
+  var typeLayers = {};
+  FILTER_KEYS.forEach(function (k) { typeLayers[k] = L.layerGroup().addTo(map); });
+  function filterGroupFor(type) {
+    if (type === "hotel" || type === "start" || type === "finish") return "hotel";
+    if (type === "lunch" || type === "poi") return type;
+    return "town";
+  }
+  var vehicleLayer = typeLayers.vehicle; // support vehicle stops
+
+  // waypoint markers (coordinates are snapped onto the trail line)
   W.forEach(function (w, i) {
     allLatLngs.push([w.lat, w.lng]);
     var color = TYPE_COLORS[w.type] || "#3a8fd0";
     var r = (w.type === "town") ? 5 : 7;
     var m = L.circleMarker([w.lat, w.lng], {
       radius: r, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1
-    }).addTo(map);
+    }).addTo(typeLayers[filterGroupFor(w.type)]);
     var html = "<b>" + (TYPE_ICON[w.type] || "") + " " + w.name + "</b><br>" +
       "<span style='color:#555'>Day " + w.day + "</span><br>" + w.desc +
+      "<br>" + gmapsLinks(w.lat, w.lng) +
       "<br><span class='popup-btn' data-target='" + i + "'>Set as next stop →</span>";
     m.bindPopup(html);
   });
+
+  // support vehicle stops (stops-data.js)
+  var VSTOPS = (typeof VEHICLE_STOPS !== "undefined") ? VEHICLE_STOPS : [];
+  var vehMarkers = [];
+  var nextVehIdx = null;
+  function vehIcon(s, isNext) {
+    return L.divIcon({
+      className: "",
+      html: "<div class='veh-stop" + (isNext ? " veh-next" : "") + "'>🚗<span>" + s.dayMile.toFixed(0) + "</span></div>",
+      iconSize: [34, 30], iconAnchor: [17, 15]
+    });
+  }
+  VSTOPS.forEach(function (s, i) {
+    var m = L.marker([s.lat, s.lng], { icon: vehIcon(s, false), zIndexOffset: 600 }).addTo(vehicleLayer);
+    m.bindPopup(
+      "<b>🚗 Vehicle stop " + (i + 1) + " — Day " + s.day + " · mile " + s.dayMile + "</b><br>" +
+      s.name + (s.kind === "parking" ? " (parking)" : " (road access)") +
+      "<br><span style='color:#555'>Trip mile " + s.tripMile + "</span><br>" + gmapsLinks(s.lat, s.lng));
+    vehMarkers.push(m);
+  });
+  function setNextVeh(idx) {
+    if (idx === nextVehIdx) return;
+    if (nextVehIdx != null && vehMarkers[nextVehIdx]) vehMarkers[nextVehIdx].setIcon(vehIcon(VSTOPS[nextVehIdx], false));
+    if (idx != null && vehMarkers[idx]) vehMarkers[idx].setIcon(vehIcon(VSTOPS[idx], true));
+    nextVehIdx = idx;
+  }
+
+  // Filter bar: toggle marker categories on/off. When only Vehicle (+Hotels)
+  // is left on, the app switches to driver mode: the "Next stop" chip tracks
+  // the next vehicle meet point and it pulses on the map.
+  var filterOn = { vehicle: true, hotel: true, lunch: true, poi: true, town: true };
+  function isDriverMode() {
+    return filterOn.vehicle && !filterOn.lunch && !filterOn.poi && !filterOn.town;
+  }
+  function refreshFilter() {
+    FILTER_KEYS.forEach(function (k) {
+      if (filterOn[k]) map.addLayer(typeLayers[k]);
+      else map.removeLayer(typeLayers[k]);
+    });
+    var all = FILTER_KEYS.every(function (k) { return filterOn[k]; });
+    document.querySelectorAll("#mapFilter button").forEach(function (b) {
+      var f = b.getAttribute("data-f");
+      b.classList.toggle("active", f === "all" ? all : filterOn[f]);
+    });
+    if (!isDriverMode()) setNextVeh(null);
+    updateNext();
+  }
+  document.querySelectorAll("#mapFilter button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var f = b.getAttribute("data-f");
+      if (f === "all") {
+        FILTER_KEYS.forEach(function (k) { filterOn[k] = true; });
+      } else {
+        filterOn[f] = !filterOn[f];
+      }
+      refreshFilter();
+    });
+  });
+  function setDriverPreset() {
+    FILTER_KEYS.forEach(function (k) { filterOn[k] = (k === "vehicle" || k === "hotel"); });
+    refreshFilter();
+  }
 
   map.on("popupopen", function (e) {
     var btn = e.popup._contentNode.querySelector(".popup-btn");
@@ -261,6 +368,12 @@
     var txt = mph < STOPPED_MPH ? "0" : mph.toFixed(1);
     $("ovSpeed").textContent = txt;
     $("chipSpeed").querySelector(".value").style.color = z.color;
+    // big on-map speed overlay (visible while GPS is on)
+    $("msVal").textContent = txt;
+    $("msVal").style.color = z.color;
+    var mz = $("msZone");
+    mz.textContent = z.name;
+    mz.style.color = z.color;
     var ro = $("speedReadout");
     ro.innerHTML = txt + "<small>mph</small>";
     ro.style.color = z.color;
@@ -339,7 +452,34 @@
     });
     return best;
   }
+  function updateNextVehicle() {
+    var cm = state.pos ? nearestRouteMile(state.pos) : null;
+    var idx = -1;
+    if (cm != null) {
+      for (var i = 0; i < VSTOPS.length; i++) {
+        if (VSTOPS[i].tripMile > cm + 0.05) { idx = i; break; }
+      }
+    } else {
+      // no GPS yet: first stop of today's riding day, else the first stop
+      idx = 0;
+      for (var j = 0; j < VSTOPS.length; j++) {
+        if (state.todayDay && VSTOPS[j].day === state.todayDay) { idx = j; break; }
+      }
+    }
+    if (idx < 0) { // past the last stop
+      $("ovNextName").textContent = "🏁 Day " + VSTOPS[VSTOPS.length - 1].day + " finish";
+      $("ovNextDist").textContent = "--";
+      setNextVeh(null);
+      return;
+    }
+    var s = VSTOPS[idx];
+    $("ovNextName").textContent = "🚗 #" + (idx + 1) + " " + s.name + " (Day " + s.day + " · mi " + s.dayMile + ")";
+    $("ovNextDist").textContent = cm != null ? (s.tripMile - cm).toFixed(1) + " trail mi" : "--";
+    setNextVeh(idx);
+  }
+
   function updateNext() {
+    if (isDriverMode() && VSTOPS.length) { updateNextVehicle(); return; }
     if (!state.pos) return;
     if (state.targetIdx == null) state.targetIdx = nearestIdx();
     var tgt = W[state.targetIdx];
@@ -365,7 +505,7 @@
     state.pois.forEach(function (p) {
       L.marker([p.lat, p.lng], {
         icon: L.divIcon({ className: "", html: "<div style='font-size:22px;filter:drop-shadow(0 1px 2px #000)'>📌</div>", iconSize: [22, 22], iconAnchor: [11, 20] })
-      }).addTo(poiLayer).bindPopup("<b>📌 " + p.name + "</b>");
+      }).addTo(poiLayer).bindPopup("<b>📌 " + p.name + "</b><br>" + gmapsLinks(p.lat, p.lng));
     });
     var list = $("poiList");
     if (!state.pois.length) { list.innerHTML = "<p class='muted' style='margin:6px 0'>No pins yet.</p>"; $("btnClearPois").hidden = true; return; }
@@ -398,6 +538,9 @@
   // ---------- buttons / wake lock ----------
   function setGpsButtons() {
     var b1 = $("btnGps"), b2 = $("btnGps2");
+    // while tracking, swap the small speed chip for the big on-map readout
+    $("mapSpeed").hidden = !state.tracking;
+    $("chipSpeed").hidden = state.tracking;
     if (state.tracking) {
       b1.textContent = "⏹"; b1.classList.add("live"); b1.classList.remove("primary");
       b2.textContent = "Stop GPS"; b2.classList.add("secondary");
@@ -436,6 +579,7 @@
     var riding = null;
     TRIP.days.forEach(function (d) { if (dayMidnight(d.date).getTime() === today.getTime()) riding = d; });
 
+    state.todayDay = riding ? riding.day : null;
     if (riding) {
       pill.textContent = "Day " + riding.day + " · today";
       planBanner.className = "banner live";
@@ -494,6 +638,45 @@
     });
   }
 
+  // ---------- support vehicle list (Plan tab) ----------
+  function buildVehicleList() {
+    var box = $("vehicleList");
+    if (!box) return;
+    if (!VSTOPS.length) { box.innerHTML = "<p class='muted'>No vehicle stops generated.</p>"; return; }
+    box.innerHTML = "";
+    var curDay = 0;
+    VSTOPS.forEach(function (s, i) {
+      if (s.day !== curDay) {
+        curDay = s.day;
+        var dInfo = TRIP.days[curDay - 1];
+        var h = document.createElement("div");
+        h.className = "veh-day";
+        h.innerHTML = "<span class='dot' style='background:" + dInfo.color + "'></span>Day " +
+          curDay + " — " + dInfo.from + " → " + dInfo.to;
+        box.appendChild(h);
+      }
+      var row = document.createElement("div");
+      row.className = "veh-row";
+      row.innerHTML =
+        "<span class='veh-name'>🚗 <b>#" + (i + 1) + "</b> mi " + s.dayMile.toFixed(0) + " · " + s.name + "</span>" +
+        "<span class='veh-links'>" +
+        "<a target='_blank' rel='noopener' href='" + gmapsUrl(s.lat, s.lng) + "'>Map</a>" +
+        "<a target='_blank' rel='noopener' href='" + gnavUrl(s.lat, s.lng) + "'>Go</a>" +
+        "</span>";
+      row.querySelector(".veh-name").addEventListener("click", function () {
+        setView("route");
+        setDriverPreset();
+        state.follow = false;
+        setTimeout(function () {
+          map.invalidateSize();
+          map.setView([s.lat, s.lng], 15);
+          vehMarkers[i].openPopup();
+        }, 60);
+      });
+      box.appendChild(row);
+    });
+  }
+
   // ---------- wire up ----------
   $("btnGps").addEventListener("click", toggleGps);
   $("btnGps2").addEventListener("click", toggleGps);
@@ -530,6 +713,7 @@
   loadPois();
   renderPois();
   buildPlan();
+  buildVehicleList();
   setGpsButtons();
   setupDateState();
 

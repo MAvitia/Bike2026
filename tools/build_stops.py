@@ -197,9 +197,9 @@ def pick_stops(cands, day_bounds):
         d0, d1 = day_bounds[day]
         target = d0 + 10 * MI
         last = d0
-        while target < d1 - 4 * MI:
+        while target < d1 - 1.5 * MI:
             window = [c for c in cands
-                      if abs(c[0] - target) <= 4 * MI and c[0] > last + 5 * MI and c[0] < d1 - 2 * MI]
+                      if abs(c[0] - target) <= 4 * MI and c[0] > last + 5 * MI and c[0] < d1 - 1.5 * MI]
             if not window:
                 target += 10 * MI
                 continue
