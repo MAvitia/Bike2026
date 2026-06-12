@@ -63,17 +63,27 @@
   }).addTo(map);
 
   var allLatLngs = [];
-  // per-day polylines
-  TRIP.days.forEach(function (d) {
+  // High-res trail geometry from OpenStreetMap (route-data.js), one polyline per
+  // day. Falls back to straight waypoint-to-waypoint lines if it didn't load.
+  var ROUTE = (typeof TRIP_ROUTE !== "undefined") ? TRIP_ROUTE : null;
+  function dayRoutePts(day) {
+    if (ROUTE && ROUTE[day] && ROUTE[day].length > 1) return ROUTE[day];
     var pts = [];
     // anchor to previous day's last waypoint so the line is continuous
-    var prev = W.filter(function (w) { return w.day === d.day - 1; });
+    var prev = W.filter(function (w) { return w.day === day - 1; });
     if (prev.length) pts.push([prev[prev.length - 1].lat, prev[prev.length - 1].lng]);
-    W.filter(function (w) { return w.day === d.day; }).forEach(function (w) {
+    W.filter(function (w) { return w.day === day; }).forEach(function (w) {
       pts.push([w.lat, w.lng]);
     });
+    return pts;
+  }
+  TRIP.days.forEach(function (d) {
+    var pts = dayRoutePts(d.day);
     if (pts.length > 1) {
-      L.polyline(pts, { color: d.color, weight: 4, opacity: 0.85 }).addTo(map);
+      L.polyline(pts, { color: d.color, weight: 4, opacity: 0.85 })
+        .addTo(map)
+        .bindPopup("<b>Day " + d.day + "</b> — " + d.from + " → " + d.to + " (" + d.miles + " mi)");
+      allLatLngs = allLatLngs.concat(pts);
     }
   });
 
@@ -463,7 +473,7 @@
       b.title = d.from + " → " + d.to;
       b.addEventListener("click", function () {
         setView("route");
-        var pts = W.filter(function (w) { return w.day === d.day; }).map(function (w) { return [w.lat, w.lng]; });
+        var pts = dayRoutePts(d.day);
         state.follow = false;
         setTimeout(function () { map.invalidateSize(); map.fitBounds(L.latLngBounds(pts), { padding: [40, 40] }); }, 60);
       });

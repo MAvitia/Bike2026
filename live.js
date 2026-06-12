@@ -134,6 +134,7 @@
       }, function () {}, { enableHighAccuracy: true, timeout: 15000 });
     }
     renderJoinUI();
+    renderOt();
     setStatus("You're sharing live as " + name + ". Keep this page open while riding.", "ok");
   }
   function leave() {
@@ -246,6 +247,60 @@
     else prompt("Copy this link:", url);
   }
 
+  // ---------- OwnTracks seamless setup ----------
+  var otCurrentUrl = "";
+  function currentName() {
+    var el = $("liveName");
+    return (state.name || (el && el.value) || localStorage.getItem("biketrip_name") || "").trim();
+  }
+  function buildOtUrl() {
+    var relay = (localStorage.getItem("biketrip_otrelay") || "").trim();
+    var name = currentName();
+    if (!relay || !name) return null;
+    var base;
+    try { var u = new URL(relay); base = u.origin + u.pathname.replace(/\/+$/, ""); }
+    catch (e) { base = relay.replace(/[?#].*$/, "").replace(/\/+$/, ""); }
+    return base + "/?room=" + encodeURIComponent(state.room) + "&name=" + encodeURIComponent(name);
+  }
+  function renderOt() {
+    var ready = $("otReady"), hint = $("otHint");
+    if (!ready) return;
+    var url = buildOtUrl();
+    if (!url) {
+      ready.hidden = true;
+      if (hint) {
+        hint.hidden = false;
+        var needName = !currentName(), needRelay = !(localStorage.getItem("biketrip_otrelay") || "").trim();
+        hint.textContent = needName && needRelay ? "Enter your name (above) and your relay URL to generate your OwnTracks setup."
+          : needName ? "Enter your name above to generate your OwnTracks setup."
+          : "Paste your relay Worker URL above to generate your OwnTracks setup.";
+      }
+      return;
+    }
+    otCurrentUrl = url;
+    if (hint) hint.hidden = true;
+    ready.hidden = false;
+    var urlBox = $("otUrl"); if (urlBox) urlBox.textContent = url;
+
+    var config = {
+      _type: "configuration", mode: 3, url: url,
+      monitoring: 1, locatorInterval: 30, locatorDisplacement: 50,
+      pubExtendedData: true, cmd: false
+    };
+    var inline = "owntracks:///config?inline=" + encodeURIComponent(btoa(JSON.stringify(config)));
+    var qr = $("otQr");
+    if (qr && window.QRCode) {
+      qr.innerHTML = "";
+      try { new QRCode(qr, { text: inline, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M }); }
+      catch (e) { try { new QRCode(qr, { text: url, width: 200, height: 200 }); } catch (e2) { qr.innerHTML = "<p class='muted' style='color:#333'>QR unavailable — use the URL below.</p>"; } }
+    }
+  }
+  function copyOt() {
+    if (!otCurrentUrl) return;
+    if (navigator.clipboard) navigator.clipboard.writeText(otCurrentUrl).then(function () { setStatus("OwnTracks URL copied.", "ok"); }, function () { prompt("Copy this URL:", otCurrentUrl); });
+    else prompt("Copy this URL:", otCurrentUrl);
+  }
+
   // ---------- init ----------
   function init() {
     state.room = getRoom();
@@ -258,7 +313,21 @@
     if ($("btnLiveJoin")) $("btnLiveJoin").addEventListener("click", join);
     if ($("btnLiveLeave")) $("btnLiveLeave").addEventListener("click", leave);
     if ($("btnLiveShare")) $("btnLiveShare").addEventListener("click", copyShare);
-    if ($("liveName")) $("liveName").addEventListener("keydown", function (e) { if (e.key === "Enter") join(); });
+    if ($("liveName")) {
+      $("liveName").addEventListener("keydown", function (e) { if (e.key === "Enter") join(); });
+      $("liveName").addEventListener("input", renderOt);
+    }
+
+    // OwnTracks background setup (works independently of Firebase config)
+    if ($("otRelay")) {
+      $("otRelay").value = localStorage.getItem("biketrip_otrelay") || "";
+      $("otRelay").addEventListener("input", function () {
+        localStorage.setItem("biketrip_otrelay", $("otRelay").value.trim());
+        renderOt();
+      });
+    }
+    if ($("btnOtCopy")) $("btnOtCopy").addEventListener("click", copyOt);
+    renderOt();
 
     renderJoinUI();
 

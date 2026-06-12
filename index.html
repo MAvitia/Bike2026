@@ -91,7 +91,7 @@
 
       <div class="card">
         <h3>About this app</h3>
-        <p class="muted">Live position, speed, and distances come from your phone's GPS — keep the screen on while riding. The drawn route is approximate (town-to-town), so trail mileage will differ a little. Map tiles need a data connection.</p>
+        <p class="muted">Live position, speed, and distances come from your phone's GPS — keep the screen on while riding. The drawn route follows the actual GAP and C&amp;O Canal Towpath (geometry from OpenStreetMap). Map tiles need a data connection.</p>
       </div>
     </div>
   </main>
@@ -130,7 +130,25 @@
 
       <div class="card">
         <h3>Track in the background (optional)</h3>
-        <p class="muted">A web page only shares location while it's open. To keep transmitting with the screen off, install the free <b>OwnTracks</b> app and point it at your relay — or use a 4G GPS tracker. See <b>SETUP.md</b> for steps and device picks.</p>
+        <p class="muted">A web page only shares location while it's open. To keep transmitting with the screen off, install the free <b>OwnTracks</b> app — this section builds its setup for you.</p>
+
+        <ol class="ot-steps">
+          <li>Deploy the relay once (free Cloudflare Worker) — see <b>SETUP.md</b>. Paste its URL below.</li>
+          <li>Enter your name above (same name = one marker).</li>
+          <li>Install <b>OwnTracks</b>, open it → <b>Settings → Configuration</b>, and either scan the QR or paste the URL.</li>
+        </ol>
+
+        <label class="ot-label" for="otRelay">Your relay Worker URL</label>
+        <input type="text" id="otRelay" placeholder="https://biketrip-owntracks-relay.<you>.workers.dev" autocapitalize="off" autocomplete="off" spellcheck="false">
+
+        <div id="otReady" hidden>
+          <p class="ot-label" style="margin-top:12px">Scan this inside the OwnTracks app (Settings → Configuration → scan):</p>
+          <div id="otQr"></div>
+          <p class="ot-label" style="margin-top:12px">…or set <b>Mode = HTTP</b> in OwnTracks and paste this <b>URL</b>:</p>
+          <div id="otUrl" class="ot-url"></div>
+          <button class="btn secondary" id="btnOtCopy">Copy OwnTracks URL</button>
+        </div>
+        <p id="otHint" class="muted" style="margin-top:10px">Enter your name and relay URL above to generate your OwnTracks setup.</p>
       </div>
     </div>
   </main>
@@ -147,7 +165,9 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="data.js"></script>
+<script src="route-data.js"></script>
 <script src="app.js"></script>
 <script src="firebase-config.js"></script>
 <script src="live.js"></script>

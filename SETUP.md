@@ -42,16 +42,25 @@ A web page only transmits while it's open. To keep sharing with the screen off, 
    ```
 4. Note the deployed URL, e.g. `https://biketrip-owntracks-relay.<you>.workers.dev`.
 
-### b) Configure the OwnTracks app (iOS / Android)
+### b) Configure the OwnTracks app — seamless (recommended)
+
+The site builds the whole config for you:
 
 1. Install **OwnTracks** from the App Store / Play Store.
-2. Settings → **Mode = HTTP**.
-3. **URL** =
+2. On the site, go to the **👥 Live** tab → **Track in the background** section.
+3. Enter your **name** (top of the tab) and paste your **relay Worker URL** (from step a).
+4. A **QR code** appears. In OwnTracks, open **Settings → Configuration** and **scan** it — this auto-sets HTTP mode, the URL, your room, and name. Done.
+5. Allow location **Always**, and bump monitoring to **Move** in OwnTracks for frequent updates while riding.
+
+### b-alt) Configure OwnTracks manually (fallback)
+
+1. OwnTracks → Settings → **Mode = HTTP**.
+2. **URL** = the one shown on the Live tab (copy it with the button), which looks like:
    ```
    https://biketrip-owntracks-relay.<you>.workers.dev/?room=<YOUR_TRIP_CODE>&name=<YourName>
    ```
-   Use the same trip code shown on the Live tab, and the same name you use on the web (so it's one marker, not two).
-4. Allow location **Always** and pick **Move** mode for frequent updates while riding.
+   Use the same name you use on the web (so it's one marker, not two).
+3. Allow location **Always** and pick **Move** mode for frequent updates while riding.
 
 Now that rider shows up on everyone's map even with the phone locked and the page closed. ⚠️ Background location drains battery — charge nightly (you've already got the battery setup!).
 

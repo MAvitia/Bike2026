@@ -29,7 +29,7 @@ It runs entirely in the phone's browser — no app install, no server, no API ke
 
 1. Create a new GitHub repo (e.g. `biketrip-2026`).
 2. Upload **all the files in this `website` folder** to the repo root:
-   `index.html`, `styles.css`, `app.js`, `data.js`.
+   `index.html`, `styles.css`, `app.js`, `data.js`, `route-data.js`.
 3. In the repo go to **Settings → Pages**.
 4. Under **Build and deployment → Source**, choose **Deploy from a branch**.
 5. Pick branch **main** and folder **/ (root)**, then **Save**.
@@ -44,3 +44,11 @@ It runs entirely in the phone's browser — no app install, no server, no API ke
 ## Editing the route
 
 All stops, coordinates, day colors, and mileages live in **`data.js`** — edit that file to add/move stops or tweak descriptions. No build step; just refresh.
+
+The detailed route line on the map comes from **`route-data.js`** — actual GAP and C&O Canal Towpath geometry (~2,700 points) extracted from the official OpenStreetMap route relations. If you change the overnight towns or add stops in `data.js`, regenerate it with:
+
+```
+python tools/build_route.py
+```
+
+The script snaps every waypoint onto the trail and routes between them along the trail itself (never roads), so the line always stays on the GAP/C&O. `tools/plot_route.py` renders a quick PNG to eyeball the result.
