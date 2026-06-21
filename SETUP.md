@@ -94,41 +94,17 @@ Plus a low-cost **IoT/data SIM** (Hologram, Soracom, or a cheap prepaid plan). P
 
 ---
 
-## 4) Photo upload to Google Drive (optional, free)
+## 4) Photo sharing via Google Drive (no setup needed)
 
-The **Plan tab → 📷 Trip Photos** lets anyone snap/pick photos that upload straight into your shared Google Drive folder — no Google sign-in for the uploaders. A tiny Cloudflare Worker (`upload-relay/`) holds the Google credentials and does the upload on their behalf.
+The **Plan tab → 📷 Trip Photos** card is just a button that opens the shared Google Drive folder, where everyone uploads their photos directly in the Drive app/site.
 
-### a) Create Google OAuth credentials (once)
+To let the family add photos, share the folder with upload rights:
 
-1. Go to <https://console.cloud.google.com> → create/select a project.
-2. **APIs & Services → Library →** enable **Google Drive API**.
-3. **APIs & Services → OAuth consent screen:** choose **External**, fill the basics, and under **Test users** add the Google account that **owns the Drive folder**. (Testing mode is fine; you don't need to publish.)
-4. **APIs & Services → Credentials → Create credentials → OAuth client ID → Web application.**
-   - Add `https://developers.google.com/oauthplayground` as an **Authorized redirect URI**.
-   - Save the **Client ID** and **Client secret**.
+1. In Google Drive, right-click the trip folder → **Share**.
+2. Either add each person's Google account as **Editor**, or set **General access → Anyone with the link → Editor**.
+3. The folder link is already wired into the button (and in `index.html` if you ever need to change it).
 
-### b) Get a refresh token (once)
-
-1. Open the **OAuth 2.0 Playground** <https://developers.google.com/oauthplayground>.
-2. Click the ⚙️ (top right) → check **Use your own OAuth credentials** → paste your Client ID + secret.
-3. On the left, in **Input your own scopes**, enter `https://www.googleapis.com/auth/drive` → **Authorize APIs** → sign in as the folder owner → allow.
-4. Click **Exchange authorization code for tokens**. Copy the **Refresh token**.
-
-### c) Deploy the upload Worker
-
-From the `upload-relay/` folder:
-
-```
-wrangler login
-wrangler secret put GOOGLE_CLIENT_ID
-wrangler secret put GOOGLE_CLIENT_SECRET
-wrangler secret put GOOGLE_REFRESH_TOKEN
-wrangler deploy
-```
-
-`DRIVE_FOLDER_ID` is already set in `upload-relay/wrangler.toml` to your folder. The deployed URL should be `https://biketrip-photo-upload.<you>.workers.dev` — if your subdomain differs, update `window.UPLOAD_WORKER_URL` in [`firebase-config.js`](firebase-config.js), then commit & push.
-
-> The Google Client ID, secret, and refresh token live **only inside the Worker** (set via `wrangler secret`, never in the website or git), so they're never exposed to uploaders. Photos are owned by the folder owner and named `Name_timestamp_original.jpg`. The browser downscales photos to ~2048 px before upload to save data. If you'd rather keep the token tightly scoped you can try `https://www.googleapis.com/auth/drive.file`, but uploads into a pre-existing folder are most reliable with the full `drive` scope.
+> Uploading to Google Drive requires the person to be signed into a Google account with edit access to the folder. There's nothing to deploy for this.
 
 ---
 

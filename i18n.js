@@ -103,11 +103,8 @@ en: {
   otHintRelay: "Paste your relay Worker URL above to generate your OwnTracks setup.",
   // photos
   photosTitle: "📷 Trip Photos",
-  photosIntro: "Snap or pick photos from your phone — they upload straight to the shared family Google Drive album. Set your name on the Live tab so photos are labeled with who took them. Big photos are shrunk automatically to upload fast.",
-  photoBtn: "📷 Add photos",
-  photoOpenDrive: "Open the shared album ↗",
-  photoUploading: "Uploading…", photoDone: "Uploaded ✓", photoErr: "Upload failed", photoView: "View",
-  photoNotConfig: "Photo upload isn't set up yet — see SETUP.md."
+  photosIntro: "Add your trip photos to our shared Google Drive album — tap below to open it, then upload straight from your phone's camera roll.",
+  photoOpenDrive: "📷 Open the shared album ↗"
 },
 es: {
   tabRoute: "Ruta", tabSpeed: "Velocidad", tabLive: "En vivo", tabPlan: "Plan",
@@ -180,11 +177,8 @@ es: {
   otHintRelay: "Pega la URL de tu Worker de relevo arriba para generar tu configuración de OwnTracks.",
   // photos
   photosTitle: "📷 Fotos del viaje",
-  photosIntro: "Toma o elige fotos desde tu teléfono — se suben directo al álbum familiar compartido en Google Drive. Pon tu nombre en la pestaña En vivo para que las fotos se etiqueten con quién las tomó. Las fotos grandes se reducen automáticamente para subir rápido.",
-  photoBtn: "📷 Agregar fotos",
-  photoOpenDrive: "Abrir el álbum compartido ↗",
-  photoUploading: "Subiendo…", photoDone: "Subida ✓", photoErr: "Falló la subida", photoView: "Ver",
-  photoNotConfig: "La subida de fotos aún no está configurada — revisa SETUP.md."
+  photosIntro: "Agrega tus fotos del viaje a nuestro álbum compartido en Google Drive — toca abajo para abrirlo y súbelas directo desde la galería de tu teléfono.",
+  photoOpenDrive: "📷 Abrir el álbum compartido ↗"
 }
 };
 

@@ -301,27 +301,9 @@ code { background: var(--panel-2); color: #cfe; padding: 2px 6px; border-radius:
 #otQr { background: #fff; padding: 10px; border-radius: 10px; width: max-content; margin: 6px auto; }
 #otQr img, #otQr canvas { display: block; }
 
-/* ---------- Photo upload ---------- */
-#photoInput { display: none; }
-.photo-progress { margin-top: 10px; }
-.photo-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 0;
-  border-bottom: 1px solid var(--line); font-size: 12.5px;
-}
-.photo-row:last-child { border-bottom: none; }
-.photo-row .thumb {
-  width: 44px; height: 44px; border-radius: 8px; object-fit: cover;
-  flex: none; background: var(--panel-2); border: 1px solid var(--line);
-}
-.photo-row .pmeta { min-width: 0; flex: 1; }
-.photo-row .pname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.photo-row .pstat { font-size: 11px; color: var(--muted); }
-.photo-row .pstat.ok { color: #8fe0a6; }
-.photo-row .pstat.err { color: #ffb1b8; }
-.photo-row .bar { height: 4px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-top: 4px; }
-.photo-row .bar > i { display: block; height: 100%; width: 0; background: var(--green); transition: width .2s; }
-.photo-row a { color: #7fc0ff; text-decoration: none; font-weight: 600; flex: none; }
+/* ---------- Photo album button ---------- */
 .btn.full-width { width: 100%; }
+a.btn { text-decoration: none; }
 
 @media (min-width: 720px) {
   header h1 { font-size: 18px; }
