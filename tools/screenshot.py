@@ -34,6 +34,25 @@ with sync_playwright() as p:
         page.wait_for_timeout(400)
         page.evaluate("() => document.querySelector('#view-plan .scroll').scrollTo(0, 700)")
         page.wait_for_timeout(200)
+    if mode == "photos":
+        page.evaluate("() => window.__setView('plan')")
+        page.wait_for_timeout(400)
+    if mode == "pins":
+        # inject a couple of fake live markers to verify the new pin style
+        page.evaluate("""() => {
+            const map = window.BikeApp.map;
+            map.setView([39.868, -79.49], 14);
+            const mk = (lat, lng, col, name, me, stale) => {
+              const cls = 'live-pin' + (me ? ' me' : '') + (stale ? ' stale' : '');
+              const html = "<div class='"+cls+"' style='background:"+col+"'>"+name.charAt(0)+
+                "<span class='live-pin-label'>"+name+"</span></div>";
+              L.marker([lat,lng], { icon: L.divIcon({className:'', html, iconSize:[30,30], iconAnchor:[15,15]}), zIndexOffset:1000 }).addTo(map);
+            };
+            mk(39.870, -79.492, 'hsl(140,70%,55%)', 'Manuel', true, false);
+            mk(39.866, -79.487, 'hsl(280,70%,55%)', 'Sofia', false, false);
+            mk(39.872, -79.486, 'hsl(20,70%,55%)', 'Diego', false, true);
+        }""")
+        page.wait_for_timeout(800)
     if mode == "speed":
         # simulate the GPS-on state to show the bottom speed overlay
         page.evaluate("""() => {

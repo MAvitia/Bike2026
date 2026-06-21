@@ -100,7 +100,14 @@ en: {
   otCopyBtn: "Copy OwnTracks URL", otCopied: "OwnTracks URL copied.", otCopyPrompt: "Copy this URL:",
   otHintBoth: "Enter your name (above) and your relay URL to generate your OwnTracks setup.",
   otHintName: "Enter your name above to generate your OwnTracks setup.",
-  otHintRelay: "Paste your relay Worker URL above to generate your OwnTracks setup."
+  otHintRelay: "Paste your relay Worker URL above to generate your OwnTracks setup.",
+  // photos
+  photosTitle: "📷 Trip Photos",
+  photosIntro: "Snap or pick photos from your phone — they upload straight to the shared family Google Drive album. Set your name on the Live tab so photos are labeled with who took them. Big photos are shrunk automatically to upload fast.",
+  photoBtn: "📷 Add photos",
+  photoOpenDrive: "Open the shared album ↗",
+  photoUploading: "Uploading…", photoDone: "Uploaded ✓", photoErr: "Upload failed", photoView: "View",
+  photoNotConfig: "Photo upload isn't set up yet — see SETUP.md."
 },
 es: {
   tabRoute: "Ruta", tabSpeed: "Velocidad", tabLive: "En vivo", tabPlan: "Plan",
@@ -170,7 +177,14 @@ es: {
   otCopyBtn: "Copiar URL de OwnTracks", otCopied: "URL de OwnTracks copiada.", otCopyPrompt: "Copia esta URL:",
   otHintBoth: "Escribe tu nombre (arriba) y la URL de tu relevo para generar tu configuración de OwnTracks.",
   otHintName: "Escribe tu nombre arriba para generar tu configuración de OwnTracks.",
-  otHintRelay: "Pega la URL de tu Worker de relevo arriba para generar tu configuración de OwnTracks."
+  otHintRelay: "Pega la URL de tu Worker de relevo arriba para generar tu configuración de OwnTracks.",
+  // photos
+  photosTitle: "📷 Fotos del viaje",
+  photosIntro: "Toma o elige fotos desde tu teléfono — se suben directo al álbum familiar compartido en Google Drive. Pon tu nombre en la pestaña En vivo para que las fotos se etiqueten con quién las tomó. Las fotos grandes se reducen automáticamente para subir rápido.",
+  photoBtn: "📷 Agregar fotos",
+  photoOpenDrive: "Abrir el álbum compartido ↗",
+  photoUploading: "Subiendo…", photoDone: "Subida ✓", photoErr: "Falló la subida", photoView: "Ver",
+  photoNotConfig: "La subida de fotos aún no está configurada — revisa SETUP.md."
 }
 };
 

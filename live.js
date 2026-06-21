@@ -11,10 +11,10 @@
 (function () {
   "use strict";
 
-  var LIVE_MS = 60000;        // fresher than this = "live" (green)
-  var IDLE_MS = 5 * 60000;    // fresher than this = "idle" (yellow)
-  var DROP_MS = 60 * 60000;   // older than this = remove from map
-  var PUBLISH_MIN_MS = 3000;  // throttle writes
+  var LIVE_MS = 60000;            // fresher than this = "live" (green)
+  var IDLE_MS = 5 * 60000;        // fresher than this = "idle" (yellow)
+  var DROP_MS = 24 * 60 * 60000;  // only drop from map after a full day stale
+  var PUBLISH_MIN_MS = 3000;      // throttle writes
 
   var state = {
     configured: false,
@@ -166,14 +166,16 @@
       if (now - (r.ts || 0) > DROP_MS) { removeMarker(key); return; }
       var fresh = freshness(r.ts || 0);
       var col = colorFor(key);
-      var opacity = fresh === "stale" ? 0.45 : 1;
-      var html = "<div class='live-pin' style='background:" + col + ";opacity:" + opacity + "'>" +
+      var isMe = key === state.riderKey;
+      var initial = escapeHtml(((r.name || key).trim().charAt(0) || "?").toUpperCase());
+      var cls = "live-pin" + (isMe ? " me" : "") + (fresh === "stale" ? " stale" : "");
+      var html = "<div class='" + cls + "' style='background:" + col + "'>" + initial +
         "<span class='live-pin-label'>" + escapeHtml(r.name || key) + "</span></div>";
-      var icon = L.divIcon({ className: "", html: html, iconSize: [16, 16], iconAnchor: [8, 8] });
+      var icon = L.divIcon({ className: "", html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
       if (state.markers[key]) {
         state.markers[key].setLatLng([r.lat, r.lng]).setIcon(icon);
       } else {
-        state.markers[key] = L.marker([r.lat, r.lng], { icon: icon, zIndexOffset: 900 }).addTo(map);
+        state.markers[key] = L.marker([r.lat, r.lng], { icon: icon, zIndexOffset: 1000 }).addTo(map);
       }
       state.markers[key].bindPopup("<b>" + escapeHtml(r.name || key) + "</b><br>" +
         (r.spd != null ? spdStr(r.spd) + " · " : "") + ago(r.ts || 0) +
@@ -217,6 +219,7 @@
       go.addEventListener("click", function () {
         if (window.__setView) window.__setView("route");
         window.BikeApp.map.setView([r.lat, r.lng], 15);
+        if (state.markers[key]) setTimeout(function () { state.markers[key].openPopup(); }, 120);
       });
       row.appendChild(go);
       list.appendChild(row);

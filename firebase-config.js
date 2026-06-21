@@ -25,3 +25,10 @@ window.FIREBASE_CONFIG = {
 // OwnTracks background relay (Cloudflare Worker). Pre-fills the Live tab's
 // OwnTracks setup so riders don't have to paste it. Not a secret.
 window.OT_RELAY_URL = "https://biketrip-owntracks-relay.manuel-avitia-v.workers.dev";
+
+// Photo-upload relay (Cloudflare Worker, see upload-relay/). It holds the
+// Google OAuth credentials and pushes photos into the shared Drive folder, so
+// family members upload without signing in. The Worker URL is NOT a secret
+// (the secrets live inside the Worker). Deploy upload-relay/ then confirm this
+// matches the deployed name.
+window.UPLOAD_WORKER_URL = "https://biketrip-photo-upload.manuel-avitia-v.workers.dev";
